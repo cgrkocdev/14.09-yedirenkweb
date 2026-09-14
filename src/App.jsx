@@ -300,6 +300,11 @@ const slides = [
 ];
 const heroProjectLinks = [
   {
+    slug: "turkiye-projeleri",
+    label: "Türkiye",
+    path: "/projeler/turkiye-projeleri",
+  },
+  {
     slug: "gazze-yardim",
     label: "Gazze Yardım",
     path: "/projeler/gazze-yardim",
@@ -472,6 +477,60 @@ const projectCatalog = [
     ],
   },
   {
+    slug: "turkiye-projeleri",
+    category: "Türkiye Projeleri",
+    title: "Türkiye",
+    short:
+      "Türkiye’de fatura, borç, nakdi yardım, yetim, gıda ve erişilebilirlik alanlarında yürüttüğümüz altı projeye destek olun.",
+    image: "/assets/project-card-turkiye-brush-v2.png",
+    description:
+      "Türkiye’de yürüttüğümüz yardım çalışmaları; ihtiyaç tespiti yapılan ailelere gıda, barınma, eğitim ve acil destek ulaştırmak amacıyla planlanır. Bağışlarınız güncel saha ihtiyaçlarına göre değerlendirilir.",
+    variants: [
+      [
+        "Fatura Desteği",
+        0,
+        "TRY",
+        "/assets/turkiye-fatura-destegi.png",
+        "Elektrik, su ve doğalgaz faturalarını ödemekte zorlanan ihtiyaç sahibi ailelerin yükünü hafifletin.",
+      ],
+      [
+        "Zimem Defteri",
+        0,
+        "TRY",
+        "/assets/turkiye-zimem-defteri.png",
+        "Mahalle bakkallarındaki veresiye borçlarını kimseyi mahcup etmeden kapatmaya destek olun.",
+      ],
+      [
+        "Nakdi Yardım",
+        0,
+        "TRY",
+        "/assets/turkiye-nakdi-yardim.png",
+        "İhtiyaç sahibi ailelerin temel giderlerini kendi önceliklerine göre karşılayabilmelerine katkıda bulunun.",
+      ],
+      [
+        "Yetim Desteği",
+        0,
+        "TRY",
+        "/assets/turkiye-yetim-destegi.png",
+        "Yetim çocukların eğitim, giyim, beslenme ve günlük ihtiyaçlarına destek olun.",
+      ],
+      [
+        "Gıda Kolisi",
+        2000,
+        "TRY",
+        "/assets/turkiye-gida-kolisi.png",
+        "Bir gıda kolisiyle ihtiyaç sahibi bir ailenin sofrasına bereket taşıyın.",
+      ],
+      [
+        "Akülü Tekerlekli Sandalye",
+        22000,
+        "TRY",
+        "/assets/turkiye-akulu-tekerlekli-sandalye.png",
+        "Hareket kısıtlılığı yaşayan bir kişinin daha bağımsız bir hayata kavuşmasına destek olun.",
+      ],
+    ],
+  },
+  {
     slug: "yetim-hamiligi",
     category: "Yetim",
     title: "Yetim Hamiliği",
@@ -617,6 +676,18 @@ function PalestineFlagIcon() {
         stroke="#6f7f87"
         strokeWidth="0.8"
       />
+    </svg>
+  );
+}
+
+function TurkishFlagIcon() {
+  return (
+    <svg viewBox="0 0 36 24" aria-hidden="true" focusable="false">
+      <rect x="2" y="4" width="32" height="16" rx="1" fill="#e30a17" />
+      <circle cx="16" cy="12" r="5" fill="#fff" />
+      <circle cx="17.7" cy="12" r="4" fill="#e30a17" />
+      <path d="m21.1 12 4.2-1.35-2.6 3.55v-4.4l2.6 3.55Z" fill="#fff" />
+      <rect x="2" y="4" width="32" height="16" rx="1" fill="none" stroke="#a60812" strokeWidth="0.7" />
     </svg>
   );
 }
@@ -1788,6 +1859,7 @@ const projectIcons = {
   "gida-kolisi": PackageCheck,
   "toplu-yemek": UtensilsCrossed,
   "gazze-yardim": PalestineFlagIcon,
+  "turkiye-projeleri": TurkishFlagIcon,
   "yetim-hamiligi": UsersRound,
   "yetim-giydirme": Sparkles,
   zekat: GoldCoinsIcon,
@@ -1805,6 +1877,7 @@ function projectGroupKey(project) {
 function projectGroupLabel(project) {
   const labels = {
     "gazze-yardim": "Gazze Yardım",
+    "turkiye-projeleri": "Türkiye",
     "adak-akika-nafile-kurban": "Kurban",
     "su-kuyusu": "Su Kuyusu",
     "gida-kolisi": "Gıda Kolisi",
@@ -2036,6 +2109,9 @@ const projectCategoryCoverImage = (project, variant, index = 0) => {
       "Eğitim Çadırı": "/assets/gazze-cover-egitim-cadiri-v3.webp",
     };
     return gazzeCovers[variant?.[0]] || projectVariantImage(project, index);
+  }
+  if (project.slug === "turkiye-projeleri") {
+    return variant?.[3] || project.image;
   }
   if (project.slug === "medrese") {
     const country = String(variant?.[0] || "").replace(/\s+Medrese$/i, "");
@@ -2293,6 +2369,10 @@ const projectLongCopy = {
     "Ameliyat Projesi; uygunluğu sağlık ekiplerince değerlendirilen hastaların ameliyat, tıbbi malzeme ve ilgili tedavi giderlerine katkı sağlar. Hasta mahremiyeti ve tıbbi önceliklendirme esas alınır.",
     "Bebek Maması Yardımı projesi çocukların temel beslenme ihtiyacına destek olur. Eğitim Çadırı projesi ise çocukların güvenli öğrenme alanlarına, temel eğitim materyallerine ve düzenli ders desteğine erişmesini amaçlar. Çocukların kimlik ve mahremiyet bilgileri korunur.",
     "Bağışınız seçtiğiniz proje için kullanılır. Uygulamalarda ihtiyaç önceliği, hane büyüklüğü, çocuk, yaşlı, engelli veya hasta bireylerin durumu dikkate alınır; tedarik ve teslim süreçleri kayıt altına alınır.",
+  ],
+  "turkiye-projeleri": [
+    "Türkiye’deki ihtiyaç sahibi aileler",
+    "Gıda, barınma, eğitim ve acil ihtiyaç desteği",
   ],
   "yetim-hamiligi": [
     "Yetim hamiliği, Afrika, Asya ve Türkiye’deki bir çocuğun yalnızca bugünkü ihtiyacını değil; eğitim, sağlık ve güvenli gelişim sürecini düzenli biçimde destekleyen uzun vadeli bir dayanışma modelidir. Bağış sırasında destek bölgesini seçebilirsiniz.",
@@ -2764,6 +2844,7 @@ const projectImpact = {
 };
 const projectCardImages = {
   "gazze-yardim": "/assets/project-card-gazze.webp",
+  "turkiye-projeleri": "/assets/project-card-turkiye-brush-v2.png",
   "adak-akika-nafile-kurban": "/assets/project-card-kurban.webp",
   "su-kuyusu": "/assets/project-card-su-kuyusu.webp",
   "gida-kolisi": "/assets/project-card-gida-kolisi.webp",
@@ -7198,7 +7279,9 @@ function ProjectGroupPage({ add }) {
                   ? "qurbani-horizontal-card"
                   : ""
               } ${
-                cardProject.slug === "gazze-yardim" ? "gazze-project-card" : ""
+                ["gazze-yardim", "turkiye-projeleri"].includes(cardProject.slug)
+                  ? "gazze-project-card"
+                  : ""
               }`}
               key={`${cardProject.slug}-${variant[0]}`}
             >
@@ -7820,6 +7903,91 @@ function ProjectDetailEnhanced({ add }) {
   );
 }
 
+const turkeyProjectDescriptions = [
+  {
+    title: "Bir Fatura, Bir Ailenin Yükünü Hafifletebilir",
+    paragraphs: [
+      "Kimi evlerde biriken faturalar, yalnızca ödenmesi gereken borçlar değil; bir ailenin her gün taşıdığı ağır bir yük.",
+      "Yedirenk Derneği olarak elektrik, su ve doğalgaz faturalarını ödemekte zorlanan ihtiyaç sahibi ailelerin yanında olmak için “Fatura Desteği” çalışmamızı sürdürüyoruz.",
+      "Sizlerin desteğiyle bir ailenin elektriği kesilmesin, bir ev soğukta kalmasın, bir anne-baba çocuklarının temel ihtiyaçlarını düşünürken bir de faturaların yükünü taşımasın.",
+      "Bir ailenin yükünü birlikte hafifletelim.",
+      "Siz de bağışınızla bir ailenin faturasına destek olabilir, onların yanında olduğumuzu hissettirebilirsiniz.",
+    ],
+  },
+  {
+    title: "Bir Borcu Değil, Bir Gönlü Hafifletelim",
+    paragraphs: [
+      "Bazı insanların borcu, yalnızca bir rakam değildir. Bir ailenin geçim mücadelesi, bir annenin kaygısı, bir babanın taşıdığı sessiz bir yük olabilir.",
+      "Yedirenk Derneği olarak Zimem Defteri Projemiz ile mahalle bakkallarında ihtiyaç sahibi ailelerin veresiye borçlarını kapatarak, kimseyi mahcup etmeden ve kimsenin kim olduğunu bilmeden destek oluyoruz.",
+      "Siz kıymetli bağışçılarımızın desteği ile bir ailenin borcu kapanıyor, bir esnafın alacağı yerine ulaşıyor ve bir evin üzerindeki yük biraz olsun hafifliyor.",
+      "İyilik bazen bir borcu kapatmak, bazen de bir insanın onurunu incitmeden yanında olmaktır.",
+      "Siz de Zimem Defteri Projemize destek olun; bir ailenin borcuna değil, hayatına dokunun.",
+    ],
+  },
+  {
+    title: "Bir El Uzat, Bir Yük Hafiflesin",
+    paragraphs: [
+      "Bazı ihtiyaçlar ertelenemez… Bir annenin mutfak masrafı, bir babanın ev kirası, bir öğrencinin okul ihtiyacı veya bir ailenin günlük geçimi beklemez.",
+      "Yedirenk Derneği olarak ihtiyaç sahibi ailelerin temel ihtiyaçlarını karşılayabilmeleri için nakdi yardım çalışmamızı sürdürüyoruz.",
+      "Siz kıymetli bağışçılarımızın desteğiyle, ihtiyaç sahiplerine doğrudan ulaşarak zor zamanlarında yanlarında oluyor; onların kendi ihtiyaçlarını önceliklerine göre karşılayabilmelerine imkân sağlıyoruz.",
+      "Bazen küçük görünen bir destek, bir ailenin o ayını rahat geçirmesine vesile olabilir.",
+      "İyilik, ihtiyaç sahibine gerçekten ihtiyaç duyduğu anda ulaşabilmektir.",
+      "Siz de nakdi yardımınızla bir ailenin yükünü hafifletmeye, zor günlerinde yanında olmaya vesile olun.",
+    ],
+  },
+  {
+    title: "Bir Yetimin Elinden Tut, Yalnız Olmadığını Hissettir",
+    paragraphs: [
+      "Bir çocuğun hayatında eksilen sadece bir anne ya da baba değildir. Bazen bir evin sıcaklığı, bazen güven duygusu, bazen de geleceğe dair ihtiyaçlar daha ağır hissedilir.",
+      "Yedirenk Derneği olarak yetim çocuklarımızın yanında olmak, onların temel ihtiyaçlarına katkı sunmak ve hayat yolculuklarında kendilerini yalnız hissetmemeleri için Yetim Desteği Projemizi sürdürüyoruz.",
+      "Siz kıymetli bağışçılarımızın desteğiyle; eğitimden giyime, beslenmeden günlük ihtiyaçlara kadar yetim çocuklarımızın ihtiyaçlarına katkı sağlıyor, onların yüzlerinde bir tebessüme vesile olmaya çalışıyoruz.",
+      "Her çocuk sevgiyle büyümeyi, güvende olmayı ve güzel bir geleceğe hazırlanmayı hak eder.",
+      "Bir yetimin ihtiyacını karşılamak, onun hayatında unutulmayacak bir iyilik bırakmaktır.",
+      "Siz de Yetim Desteği Projemize katkıda bulunarak bir çocuğun yanında olduğunuzu hissettirebilir, onun hayatına dokunabilirsiniz.",
+    ],
+  },
+  {
+    title: "Bir Sofraya Bereket, Bir Aileye Destek",
+    paragraphs: [
+      "Bazı sofralarda eksilen yalnızca yemek değildir; bir ailenin geçim mücadelesi, çocukların ihtiyaçları ve yarının kaygısı da o sofraya yansır.",
+      "Yedirenk Derneği olarak temel gıda ihtiyaçlarını karşılamakta zorlanan ailelerin yanında olmak için Gıda Kolisi Projemizi sürdürüyoruz.",
+      "Siz kıymetli bağışçılarımızın desteğiyle hazırlanan gıda kolileri; ihtiyaç sahibi ailelerin mutfaklarına ulaşıyor, sofralarına katkı oluyor ve zor zamanlarında yalnız olmadıklarını hissettiriyor.",
+      "Bir koli; bir ailenin mutfağındaki eksikleri tamamlayabilir, bir annenin alışveriş kaygısını azaltabilir, bir çocuğun sofrasına katkı olabilir.",
+      "Bir Gıda Kolisi destek bedeli: 2.000 TL",
+      "Paylaştıkça çoğalan iyiliğe siz de ortak olun.",
+      "Siz de Gıda Kolisi Projemize destek olarak bir ailenin sofrasına katkıda bulunabilir, ihtiyaç sahiplerinin yanında olduğumuzu birlikte gösterebilirsiniz.",
+    ],
+  },
+  {
+    title: "Bir Sandalye Değil, Özgürlüğe Açılan Bir Yol",
+    paragraphs: [
+      "Hareket etmek, dışarı çıkmak, kendi ihtiyaçlarını karşılamak ve hayata daha bağımsız bir şekilde devam edebilmek… Bunlar herkes için sıradan görünen ama bazı kardeşlerimiz için büyük bir imkân anlamına gelen ihtiyaçlardır.",
+      "Yedirenk Derneği olarak hareket kısıtlılığı yaşayan ihtiyaç sahibi kardeşlerimizin günlük hayatlarını kolaylaştırmak ve sosyal yaşama daha aktif katılabilmelerine destek olmak amacıyla Akülü Tekerlekli Sandalye Projemizi sürdürüyoruz.",
+      "Siz kıymetli bağışçılarımızın desteğiyle temin edilen akülü tekerlekli sandalyeler, ihtiyaç sahiplerinin hayatına yalnızca hareket kolaylığı değil; bağımsızlık, özgüven ve yeniden hayata karışabilme imkânı kazandırıyor.",
+      "Bazen bir destek, bir insanın kendi başına dışarı çıkabilmesi; ailesine, dostlarına ve hayata daha yakın olabilmesi demektir.",
+      "Bir adet Akülü Tekerlekli Sandalye destek bedeli: 22.000 TL",
+      "Bir sandalye hediye etmeyin sadece; bir insanın kendi yolunda yürüyebilmesine vesile olun.",
+      "Siz de Akülü Tekerlekli Sandalye Projemize destek olarak bir kardeşimizin hayatına dokunabilir, onun hayatını kolaylaştırabilirsiniz.",
+    ],
+  },
+];
+
+function TurkeySelectedProjectDescription({ choice }) {
+  const content = turkeyProjectDescriptions[choice] || turkeyProjectDescriptions[0];
+  return (
+    <article className="gaza-selected-project-copy">
+      <span className="zakat-section-kicker">TÜRKİYE PROJELERİ</span>
+      <h2>{content.title}</h2>
+      {content.paragraphs.map((paragraph, index) => (
+        <p key={paragraph}>
+          {index === content.paragraphs.length - 1 ? "🤲 " : ""}
+          {paragraph}
+        </p>
+      ))}
+    </article>
+  );
+}
+
 function GazaSelectedProjectDescription({ choice }) {
   if (choice === 0) {
     return (
@@ -8332,7 +8500,7 @@ function ProjectDetailVerenel({ add }) {
     );
   const variant = project.variants[choice],
     detailImage =
-      project.slug === "gazze-yardim"
+      ["gazze-yardim", "turkiye-projeleri"].includes(project.slug)
         ? projectCategoryCoverImage(project, variant, choice)
         : projectVariantImage(project, choice),
     currency = variant?.[2] || "TRY",
@@ -8340,6 +8508,7 @@ function ProjectDetailVerenel({ add }) {
     orphanClothing = project.slug === "yetim-giydirme",
     manualAmountProject = [
       "gazze-yardim",
+      "turkiye-projeleri",
       "gida-kolisi",
       "toplu-yemek",
       "yetim-hamiligi",
@@ -8489,7 +8658,7 @@ function ProjectDetailVerenel({ add }) {
       <section
         className={`container simple-project-top verenel-project-top${
           project.slug === "su-kuyusu" ? " water-well-project-top" : ""
-        }${project.slug === "gazze-yardim" ? " gazze-poster-project-top" : ""}`}
+        }${["gazze-yardim", "turkiye-projeleri"].includes(project.slug) ? " gazze-poster-project-top" : ""}`}
       >
         <div className="simple-project-visual">
           <Media
@@ -8500,7 +8669,7 @@ function ProjectDetailVerenel({ add }) {
             }
             alt={project.title}
           />
-          {project.slug !== "gazze-yardim" && (
+          {!["gazze-yardim", "turkiye-projeleri"].includes(project.slug) && (
             <div className="simple-image-brand">
               <span>{projectDetailBadgeLabel(project, variant)}</span>
             </div>
@@ -8522,17 +8691,20 @@ function ProjectDetailVerenel({ add }) {
                 value={choice}
                 onChange={(e) => selectVariant(e.target.value)}
               >
-                {(project.slug === "gazze-yardim"
+                {(["gazze-yardim", "turkiye-projeleri"].includes(project.slug)
                   ? [[variant, choice]]
                   : project.variants.map((v, i) => [v, i])
                 ).map(([v, i]) => (
                   <option
                     key={v[0]}
                     value={i}
-                    disabled={!v[1] && project.slug !== "gazze-yardim"}
+                    disabled={
+                      !v[1] &&
+                      !["gazze-yardim", "turkiye-projeleri"].includes(project.slug)
+                    }
                   >
                     {v[0]}
-                    {project.slug !== "gazze-yardim" &&
+                    {!["gazze-yardim", "turkiye-projeleri"].includes(project.slug) &&
                       (v[1] ? ` — ${money(v[1], v[2])}` : " — Fiyat yakında")}
                   </option>
                 ))}
@@ -8870,6 +9042,11 @@ function ProjectDetailVerenel({ add }) {
       {project.slug === "gazze-yardim" && (
         <section className="container simple-project-description">
           <GazaSelectedProjectDescription choice={choice} />
+        </section>
+      )}
+      {project.slug === "turkiye-projeleri" && (
+        <section className="container simple-project-description">
+          <TurkeySelectedProjectDescription choice={choice} />
         </section>
       )}
       {project.slug === "gida-kolisi" && (

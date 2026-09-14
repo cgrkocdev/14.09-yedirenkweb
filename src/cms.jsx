@@ -146,6 +146,9 @@ export function CmsProvider({ defaults, children }) {
           upgradeZakatProject =
             Number(saved.settings?.projectsVersion || 0) < 9,
           addGazaProject = Number(saved.settings?.projectsVersion || 0) < 10,
+          addTurkeyProjects = Number(saved.settings?.projectsVersion || 0) < 61,
+          upgradeTurkeyProjects =
+            Number(saved.settings?.projectsVersion || 0) < 63,
           upgradeGazaSingleProject =
             Number(saved.settings?.projectsVersion || 0) < 26,
           upgradeGazaWaterTankerProject =
@@ -247,7 +250,7 @@ export function CmsProvider({ defaults, children }) {
                   address: cleanDefaults.settings.address,
                 }
               : {}),
-            projectsVersion: 60,
+            projectsVersion: 63,
             wordingVersion: 3,
             assetFormatVersion: 1,
             navigationVersion: 7,
@@ -385,6 +388,13 @@ export function CmsProvider({ defaults, children }) {
                   details: currentCardProject.details,
                   variants: currentCardProject.variants,
                 };
+              }
+              if (
+                upgradeTurkeyProjects &&
+                savedProject.slug === "turkiye-projeleri" &&
+                currentCardProject
+              ) {
+                return currentCardProject;
               }
               if (
                 removeCommunityMealGaza &&
@@ -719,6 +729,14 @@ export function CmsProvider({ defaults, children }) {
                 )
                 ? cleanDefaults.projects.filter(
                     (project) => project.slug === "toplu-yemek",
+                  )
+                : [],
+              addTurkeyProjects &&
+                !(saved.projects || cleanDefaults.projects).some(
+                  (project) => project.slug === "turkiye-projeleri",
+                )
+                ? cleanDefaults.projects.filter(
+                    (project) => project.slug === "turkiye-projeleri",
                   )
                 : [],
             )
