@@ -1,0 +1,115 @@
+GİZLİLİK POLİTİKASI VE KVKK AYDINLATMA METNİ
+
+Bağışçı, ziyaretçi ve iletişim formu kullanıcıları için
+
+Kullanım notu
+
+Bu metin, derneğin gerçek veri işleme envanterine göre kısaltılmalı ve doğrulanmalıdır. Kullanılmayan veri kategorileri, amaçlar, alıcılar ve yurt dışı aktarım ifadeleri silinmelidir.
+
+1. Veri Sorumlusu
+
+6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında veri sorumlusu: Yedirenk Eğitim, Kültür ve Yardımlaşma Derneği (“Dernek” veya “Yedirenk”) olup iletişim bilgileri aşağıdadır:
+
+Tescilli unvan: Yedirenk Eğitim Kültür ve Yardımlaşma Derneği
+
+Dernek kütük numarası: 06-162-168
+
+Vergi numarası / vergi dairesi: 9460581419 / Çankaya
+
+Merkez adresi: Kızılırmak Mah. 1450. Sok. 16/6 Çankaya/Ankara
+
+Web sitesi: https://yedirenkdernegi.org
+
+E-posta: iletisim@yedirenkdernegi.org
+
+KEP adresi: yedirenkdernegi@hs01.kep.tr
+
+Telefon: 0533 640 77 65
+
+2. Hangi Kişisel Veriler İşlenebilir?
+
+Kimlik: Ad, soyad; bağış makbuzu/teyidi veya yasal yükümlülük gerektiriyorsa T.C. kimlik/vergi numarası.
+
+İletişim: E-posta, telefon, adres, iletişim tercihleri.
+
+Bağış ve işlem: Bağış tutarı, tarih, para birimi, kampanya tercihi, işlem/ödeme referans numarası, düzenli bağış bilgisi, iptal/iade kayıtları.
+
+Finans: Kartın maskelenmiş son haneleri, banka/ödeme kuruluşu işlem sonucu ve iade bilgisi. Tam kart numarası ve CVV Dernek tarafından saklanmamalıdır.
+
+İşlem güvenliği: IP adresi, zaman damgası, cihaz/tarayıcı bilgisi, log kayıtları, hata ve güvenlik kayıtları.
+
+Talep/şikâyet: İletişim formları, çağrı ve yazışma içerikleri, başvuru kayıtları.
+
+Pazarlama: Yalnızca ayrı bir hukuki sebep/açık rıza varsa iletişim izni ve tercihleri.
+
+Çerez/çevrim içi kullanım: Çerez kimlikleri, ziyaret ve tercih verileri; ayrıntılar Çerez Politikası’ndadır.
+
+3. İşleme Amaçları ve Hukuki Sebepler
+
+Bağış işleminin kurulması, gerçekleştirilmesi ve teyidi: Bir sözleşmenin kurulması/ifası için gerekli olma; hukuki yükümlülük; meşru menfaat.
+
+Ödeme, muhasebe, dernek gelir kayıtları, denetim ve raporlama: Hukuki yükümlülük; bir hakkın tesisi, kullanılması veya korunması.
+
+İptal/iade, hata, itiraz, chargeback ve fraud incelemeleri: Sözleşmenin ifası; hukuki yükümlülük; hakların korunması; meşru menfaat.
+
+Bağışçı taleplerine cevap verilmesi ve iletişimin yürütülmesi: Talebe bağlı sözleşmesel süreç; meşru menfaat; gerektiğinde açık rıza.
+
+Bilgi sistemleri ve ödeme güvenliğinin sağlanması: Hukuki yükümlülük; meşru menfaat.
+
+Kanunen yetkili kurumlara bilgi verilmesi: Hukuki yükümlülük veya açıkça kanunda öngörülme.
+
+E-bülten, kampanya duyurusu ve tanıtım iletişimi: Ayrı, özgür ve geri alınabilir açık rıza veya ilgili iletişim mevzuatındaki diğer uygun hukuki sebep.
+
+Analitik ve reklam çerezleri: Gerekli olduğu ölçüde ayrı çerez rızası; zorunlu çerezler için hizmetin sunulması/meşru menfaat.
+
+4. Kişisel Verilerin Aktarılması
+
+Kişisel veriler, amaçla sınırlı ve gerekli ölçüde aşağıdaki alıcı gruplarına aktarılabilir:
+
+• Sanal POS hizmetini sunan banka, ödeme kuruluşu ve kartlı ödeme ekosistemindeki ilgili kuruluşlar.
+
+• Muhasebe, bağımsız denetim, hukuk, bilgi teknolojileri, hosting, e-posta, CRM, çağrı merkezi ve güvenlik hizmeti sağlayıcıları.
+
+• Kanunen yetkili kamu kurumları, kolluk, yargı mercileri, denetim makamları ve Sivil Toplumla İlişkiler birimleri.
+
+• Bağışçının talebi veya işlemin niteliği gerektiriyorsa kampanya/proje iş ortakları; ancak bu aktarım önceden ayrıca açıklanmalıdır.
+
+5. Toplama Yöntemi
+
+Veriler; web sitesi ve bağış formları, ödeme kuruluşu/banka entegrasyonu, çerezler ve loglar, e-posta/telefon yazışmaları, fiziksel başvurular ve kanunen yetkili kaynaklar üzerinden tamamen veya kısmen otomatik ya da otomatik olmayan yollarla elde edilebilir.
+
+6. Saklama Süreleri
+
+Veriler, ilgili mevzuattaki saklama süreleri ile işleme amacı için gerekli süre boyunca saklanır; süre sonunda silinir, yok edilir veya anonim hale getirilir. Aşağıdaki tablo derneğin saklama-imha politikasına göre doldurulmalıdır.
+
+Bağış/muhasebe ve ödeme kayıtları: TTK m. 82 ve Dernekler Kanunu m. 11 uyarınca 10 yıl.
+
+İletişim ve talep kayıtları: TBK ve diğer mevzuat uyarınca talebin kapanması itibarıyla 3-10 yıl saklanmalıdır.
+
+İşlem güvenliği/log kayıtları: 5651 sayılı Kanun uyarınca 2 yıl.
+
+Pazarlama izin ve ret kayıtları: 3 yıl.
+
+Çerez verileri: Her çerezin envanterde belirtilen süresi.
+
+7. Ödeme ve Kart Güvenliği
+
+Bağış ödemeleri [T.C. Ziraat Bankası A.Ş. – Havale/EFT] altyapısı üzerinden yürütülür. Dernek, teknik mimari gerçekten bu şekildeyse, kartın tam numarasını ve CVV bilgisini görmez veya saklamaz; yalnızca maskelenmiş kart bilgisi, işlem sonucu ve referans numarası gibi sınırlı verileri alır. Bu ifade ödeme entegrasyonu doğrulanmadan yayımlanmamalıdır.
+
+8. İlgili Kişinin Hakları ve Başvuru
+
+İlgili kişiler, KVKK’nın 11. maddesi kapsamındaki haklarına ilişkin taleplerini kimliklerini doğrulayacak bilgi ve belgelerle aşağıdaki kanallardan iletebilir:
+
+• Yedirenk Eğitim, Kültür ve Yardımlaşma Derneği, Kızılırmak Mah. 1450. Sok. 16/6 Çankaya/Ankara
+
+• yedirenkdernegi@hs01.kep.tr
+
+• iletisim@yedirenkdernegi.org
+
+Başvurular, mevzuatta öngörülen süre içinde sonuçlandırılır. Başvurunun ek maliyet gerektirmesi halinde, Kurul tarafından belirlenen tarifedeki ücret talep edilebilir.
+
+9. Metnin Güncellenmesi
+
+Bu metin veri işleme faaliyetleri, tedarikçiler veya mevzuat değiştiğinde güncellenebilir. Güncel sürüm, yürürlük tarihi ve sürüm numarasıyla internet sitesinde yayımlanır.
+
+Yürürlük tarihi: [21.08.2026] | Sürüm: [1.0]

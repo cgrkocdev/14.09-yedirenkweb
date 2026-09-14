@@ -1,0 +1,46 @@
+1.Genel İlke
+Bağışlar, karşılıksız ve dernek amaçlarına tahsis edilmek üzere yapılır. Bu nedenle başarılı bir bağışın otomatik
+olarak geri alınması veya mal satışındaki cayma hakkına dayanılarak iadesi söz konusu değildir. Bununla birlikte
+aşağıdaki durumlarda iade talebi incelenir.
+2.İncelenebilecek İade Nedenleri
+ Aynı işlemin teknik hata nedeniyle birden fazla tahsil edilmesi.
+ Bağışçının açıkça yanlış tutar girmesi ve durumu gecikmeden bildirmesi.
+ Kartın/hesabın yetkisiz kullanıldığına ilişkin doğrulanabilir iddia.
+ Ödeme ekranı veya banka/ödeme kuruluşu kaynaklı teknik hata.
+ Bağışın yanlış kampanya/projeye yönlendirilmesi.
+ Kampanyanın iptali, amacın imkansız hale gelmesi veya hukuken iadenin gerekli olması.
+ Derneğin bağışı uyum, yaptırım, etik veya tüzük amacı nedeniyle kabul edememesi.
+3. Talep Süresi
+Bağışçı, hata veya yetkisiz işlemi öğrendiğinde gecikmeksizin ve tercihen işlem tarihinden itibaren 7 takvim günü
+içinde başvurmalıdır. Bu süre, kanuni hakları ortadan kaldıran kesin bir hak düşürücü süre değildir; ancak bağışın
+projeye tahsis edilmesi veya harcanması inceleme sonucunu etkileyebilir.
+4. Başvuru Bilgileri
+İade talebi iletisim@yedirenkdernegi.org adresine iletilmelidir. Talepte aşağıdaki bilgiler bulunmalıdır:
+ Ad-soyad/unvan
+ İşlem tarihi ve tutarı
+ Ödeme/işlem referans numarası
+ Bağış yapılan kampanya
+ İade gerekçesi
+ Ödeme aracının yalnızca maskelenmiş bilgisi (tam kart numarası/CVV gönderilmemelidir)
+ Kimlik ve yetki doğrulaması için gerekli sınırlı belgeler
+5.İnceleme ve Sonuç
+1. Dernek, başvuruyu ödeme kuruluşu/banka kayıtları ve kendi muhasebe kayıtları üzerinden inceler; ek bilgi
+isteyebilir.
+2. İade kararı, derneğin yetkili organları ve mali kayıt düzeni gözetilerek alınır. İade, kural olarak bağışın yapıldığı
+ödeme aracına gerçekleştirilir.
+3. Dernek iade işlemini onayladıktan sonra ödeme kuruluşuna talimat verir. Tutarın hesaba yansıma süresi
+bankaya/ödeme kuruluşuna göre değişebilir.
+4. Kart komisyonu, kur farkı veya banka masrafı konusunda zorunlu mevzuat ve ödeme kuruluşu kuralları
+uygulanır; bağışçıya önceden açıklanmayan kesinti yapılmamalıdır.
+6.İade Yapılmayabilecek Haller
+ Bağışçının fikrini değiştirmesi tek başına iade garantisi oluşturmaz.
+ Bağışın belirtilen amaç için tahsis edilmiş veya harcanmış olması.
+ Başvurunun işlemle eşleştirilememesi veya başvuranın yetkisinin doğrulanamaması.
+ Sahtecilik, kötüye kullanım veya chargeback süreciyle çelişen talepler.
+ İadenin mevzuata, yaptırım/uyum yükümlülüklerine veya kamu yararına aykırı olması.
+7. Düzenli Bağışların Durdurulması
+Düzenli bağış olmayaucak bu alan buna göre düzenlensin.
+8. Yetkisiz İşlem ve Chargeback
+Yetkisiz kart kullanımı iddiasında bağışçı bankasıyla da derhal iletişime geçmelidir. Banka tarafından başlatılan
+itiraz/chargeback süreci ile Derneğe yapılan iade talebi birlikte koordine edilir; aynı işlem için çift iade yapılmaz.
+Yürürlük tarihi: 21.08.2026 | Sürüm: 1.0

@@ -1,0 +1,84 @@
+Gerçek envanter şarttır
+Aşağıdaki örnek satırlar, web sitesinin tarayıcı geliştirici araçları veya bir çerez tarama aracıyla tespit edilen
+gerçek çerezlerle değiştirilmelidir. Gerçekte kullanılmayan çerezleri listelemeyin.
+1.Çerez Nedir?
+Çerezler, internet sitesinin cihazınıza yerleştirdiği küçük metin dosyalarıdır. Yerel depolama, piksel ve benzeri
+teknolojiler de işlevlerine göre bu politika kapsamında değerlendirilebilir.
+2.Çerez Kategorileri
+Kategori Amaç ve yaklaşım
+Kesinlikle gerekli Güvenli oturum, yük dengeleme, ödeme adımları, tercihlerin kaydı
+ve temel site işlevleri. Hizmet için gerekli olduklarından rıza
+dışındaki uygun hukuki sebebe dayanabilir.
+İşlevsel Dil, erişilebilirlik, video veya canlı destek gibi kullanıcı tercihlerine
+bağlı ek işlevler. Gerektiğinde rıza ile etkinleştirilir.
+Analitik/performans Trafik, sayfa kullanımı ve hata ölçümü. Kullanıcıya bağlı analiz
+yapılıyorsa rıza alınmadan çalıştırılmamalıdır.
+Pazarlama/reklam İlgi profili, yeniden hedefleme, reklam ölçümü ve sosyal medya
+takibi. Önceden açık seçim/çerez rızası gerektirir.
+3.Çerez Envanteri
+Çerez/teknoloji Sağlayıcı Amaç Tür Süre Hukuki sebep
+session_id /
+oturum çerezi
+Yedirenk Eğitim,
+Kültür ve Yardımlaşma
+Derneği
+Güvenli oturum ve
+bağış adımlarının
+yürütülmesi
+Zorunlu Oturum süresince Hizmetin
+sunulması / meşru
+menfaat
+Ödeme güvenliği
+/ 3D Secure
+çerezleri
+Ziraat Bankası
+A.Ş. / ilgili
+ödeme kuruluşu
+"Fraud önleme,
+ödeme güvenliği ve
+3D Secure işlemlerinin
+yürütülmesi"
+Zorunlu Oturum süresince
+veya
+ödeme sağlayıcısının
+belirlediği süre
+boyunca
+Hukuki
+yükümlülük / meşru
+menfaat
+Google LLC Google Analytics –
+_ga, _ga_<ID>
+Site ziyaretlerinin,
+kullanıcı
+etkileşimlerinin ve
+performansın
+analiz edilmesi
+Analitik _ga: 2 yıl;
+_ga_<ID>: 2 yıl
+Açık rıza / çerez rızası
+Meta Pixel – _fbp
+TikTok Pixel – _ttp
+Meta Platforms Ireland Limited
+Google Ads – _gcl_au
+Google LLC
+TikTok
+Reklam
+performansının
+ölçülmesi, dönüşüm
+takibi ve yeniden
+Pazarlama 90 gün
+Açık rıza / çerez rızası
+hedefleme yapılması
+4.Tercihlerin Yönetilmesi
+İlk ziyarette zorunlu olmayan çerezler kapalı olmalıdır. Ziyaretçiye “Kabul et”, “Reddet” ve “Tercihleri yönet”
+seçenekleri sunulmalı; seçim daha sonra sayfadaki “Çerez Tercihleri” bağlantısından değiştirilebilmelidir. Rızanın
+geri alınması, rıza vermek kadar kolay olmalıdır.
+5.Örnek Çerez Bandı Metni
+Örnek
+Sitemizin güvenli ve doğru çalışması için zorunlu çerezler kullanıyoruz. Analitik, işlevsel ve pazarlama
+çerezlerini yalnızca tercihiniz doğrultusunda etkinleştiririz. Ayrıntılar için Çerez Politikamızı inceleyebilirsiniz.
+Kabul et / Reddet / Tercihleri yönet
+6.Tarayıcı Ayarları ve İletişim
+Tarayıcı ayarlarından çerezler silinebilir veya engellenebilir; ancak zorunlu çerezlerin engellenmesi ödeme ve
+site işlevlerini etkileyebilir. Sorular için iletisim@yedirenkdernegi.org adresi kullanılabilir.
+Yürürlük tarihi: 21.08.2026 | Sürüm: 1.0

@@ -1,47 +1,26 @@
 export const menuGroups = [
   {
-    label: "Biz Kimiz",
+    label: "Kurumsal",
     path: "/kurumsal/hakkimizda",
     intro:
       "Yedirenk’in değerlerini, yönetim anlayışını ve şeffaflık yaklaşımını keşfedin.",
     items: [
-      ["Hakkımızda", "/kurumsal/hakkimizda"],
-      ["İlham Kaynağımız", "/kurumsal/ilham-kaynagimiz"],
-      ["Yetkili Kurullar", "/kurumsal/yetkili-kurullar"],
-      ["Dernek Tüzüğü", "/kurumsal/dernek-tuzugu"],
-      ["Denetim", "/kurumsal/denetim"],
-      ["Etik Değerler", "/kurumsal/etik-degerler"],
-      ["Uyum ve Risk", "/kurumsal/uyum-ve-risk"],
-      ["Basın Odası", "/kurumsal/basin-odasi"],
-      ["İnsan Kaynakları", "/kurumsal/insan-kaynaklari"],
+      ["Biz Kimiz?", "/kurumsal/hakkimizda"],
+      ["Başkanın Mesajı", "/kurumsal/yonetim-kurulu-mesaji"],
+      ["Kurumsal Kimlik", "/kurumsal/kurumsal-kimlik"],
+      ["Tüzük", "/kurumsal/tuzuk"],
       ["KVKK", "/kurumsal/kvkk"],
-      ["Bilgi Güvenliği Politikası", "/kurumsal/bilgi-guvenligi"],
-      ["Yolsuzluk ve Rüşvetle Mücadele", "/kurumsal/yolsuzlukla-mucadele"],
-      ["Bağışçı Hakları", "/kurumsal/bagisci-haklari"],
-      ["Vergi Muafiyeti", "/kurumsal/vergi-muafiyeti"],
-      ["Mali Tablolar", "/kurumsal/mali-tablolar"],
-      ["Bağımsız Denetim Raporu", "/kurumsal/bagimsiz-denetim"],
     ],
   },
   {
-    label: "Ne Yapıyoruz",
+    label: "Faaliyetler",
     path: "/calismalarimiz",
     intro:
       "Eğitim, kültür ve yardımlaşmayı sahada sürdürülebilir projelere dönüştürüyoruz.",
     items: [
-      ["Filistin / Gazze", "/calismalarimiz/filistin-gazze"],
-      ["Katarakt", "/calismalarimiz/katarakt"],
-      ["Yetim", "/calismalarimiz/yetim"],
-      ["Suriye", "/calismalarimiz/suriye"],
-      ["Su", "/calismalarimiz/su"],
-      ["Mavi Marmara", "/calismalarimiz/mavi-marmara"],
-      ["İnsani Yardım", "/calismalarimiz/insani-yardim"],
-      ["İnsan Hakları", "/calismalarimiz/insan-haklari"],
-      ["İnsani Diplomasi", "/calismalarimiz/insani-diplomasi"],
-      ["Acil Yardım", "/calismalarimiz/acil-yardim"],
-      ["Arama Kurtarma", "/calismalarimiz/arama-kurtarma"],
-      ["Gönüllü Çalışmalar", "/calismalarimiz/gonullu-calismalar"],
-      ["Farkındalık Çalışmaları", "/calismalarimiz/farkindalik"],
+      ["Eğitim", "/calismalarimiz/egitim"],
+      ["Kültür", "/calismalarimiz/kultur"],
+      ["Yardımlaşma", "/calismalarimiz/yardimlasma"],
     ],
   },
   {
@@ -72,9 +51,34 @@ const page = (title, category, summary, accent = "teal") => ({
 
 export const pageContent = {
   "/kurumsal/hakkimizda": page(
-    "Hakkımızda",
-    "Biz Kimiz",
+    "Biz Kimiz?",
+    "Kurumsal",
     "İnsanı, bilgiyi, kültürü ve iyiliği temel değerleri kabul eden; samimiyetle çalışan bir dayanışma hareketiyiz.",
+  ),
+  "/kurumsal/yonetim-kurulu-mesaji": page(
+    "Başkanın Mesajı",
+    "Kurumsal",
+    "İyiliği özenle ve güvenle büyütme yolculuğumuza yön veren anlayışımızı ve geleceğe dair hedeflerimizi paylaşıyoruz.",
+  ),
+  "/kurumsal/kurumsal-kimlik": page(
+    "Kurumsal Kimlik",
+    "Kurumsal",
+    "Yedirenk’in logo, renk, tipografi ve kurumsal kullanım standartlarına buradan ulaşabilirsiniz.",
+  ),
+  "/kurumsal/tuzuk": page(
+    "Tüzük",
+    "Kurumsal",
+    "Yedirenk Derneği’nin amaçlarını, faaliyet alanlarını, üyelik esaslarını ve yönetim yapısını belirleyen resmi kuruluş belgesidir.",
+  ),
+  "/kurumsal/kvkk": page(
+    "Kişisel Verilerin Korunması",
+    "Kurumsal",
+    "Yedirenk Derneği’nin kişisel veri işleme süreçlerine ilişkin bilgilendirme metinlerine, haklarınıza ve başvuru kanallarına bu alandan ulaşabilirsiniz.",
+  ),
+  "/kurumsal/cerez-politikasi": page(
+    "Çerez Politikası",
+    "Yasal",
+    "Web sitemizde kullanılan çerezlerin amaçları, türleri ve tercihlerinizi nasıl yönetebileceğiniz hakkında bilgilendirme.",
   ),
   "/kurumsal/ilham-kaynagimiz": page(
     "İlham Kaynağımız",
@@ -116,11 +120,6 @@ export const pageContent = {
     "Kariyer",
     "İyiliği mesleki yetkinlikle buluşturmak isteyen ekip arkadaşlarımızı arıyoruz.",
   ),
-  "/kurumsal/kvkk": page(
-    "Kişisel Verilerin Korunması",
-    "Yasal",
-    "Kişisel verilerin güvenliğini ve ilgili kişilerin haklarını gözeten yaklaşımımız.",
-  ),
   "/kurumsal/bilgi-guvenligi": page(
     "Bilgi Güvenliği Politikası",
     "Yasal",
@@ -157,9 +156,27 @@ export const pageContent = {
     "Eğitim, kültür, insani yardım ve dayanışma alanlarında kalıcı etki üretiyoruz.",
     "orange",
   ),
+  "/calismalarimiz/egitim": page(
+    "Eğitim",
+    "Faaliyetler",
+    "Bilgiyi paylaşan, çocukların ve gençlerin gelişimini destekleyen eğitim çalışmaları yürütüyoruz.",
+    "orange",
+  ),
+  "/calismalarimiz/kultur": page(
+    "Kültür",
+    "Faaliyetler",
+    "Kültürel değerleri yaşatan, ortak hafızayı ve toplumsal bağı güçlendiren çalışmalar yürütüyoruz.",
+    "orange",
+  ),
+  "/calismalarimiz/yardimlasma": page(
+    "Yardımlaşma",
+    "Faaliyetler",
+    "İhtiyaç sahipleriyle dayanışmayı güçlendiren, insan onurunu gözeten yardım çalışmaları yürütüyoruz.",
+    "orange",
+  ),
   "/calismalarimiz/filistin-gazze": page(
     "Filistin / Gazze",
-    "Acil Yardım",
+    "Gazze Yardım",
     "Gıda, sağlık, barınma ve eğitim ihtiyaçlarına yönelik sürdürülebilir yardım çalışmaları.",
     "orange",
   ),
@@ -183,7 +200,7 @@ export const pageContent = {
   ),
   "/calismalarimiz/su": page(
     "Su",
-    "Kalıcı Eser",
+    "Su Kuyusu",
     "Temiz suya erişimin kısıtlı olduğu bölgelerde sürdürülebilir su çözümleri.",
     "orange",
   ),
@@ -212,7 +229,7 @@ export const pageContent = {
     "orange",
   ),
   "/calismalarimiz/acil-yardim": page(
-    "Acil Yardım",
+    "Afet ve Kriz Yardımı",
     "Afet ve Kriz",
     "Afet ve kriz anlarında hızlı değerlendirme, koordinasyon ve yardım ulaştırma.",
     "orange",
@@ -247,7 +264,7 @@ export const pageContent = {
   ),
   "/katil/su-kuyusu": page(
     "Su Kuyusu Açtır",
-    "Kalıcı Eser",
+    "Su Kuyusu",
     "Bir topluluğun temiz suya sürdürülebilir biçimde erişmesine destek olun.",
   ),
   "/katil/mobil-uygulama": page(
@@ -268,7 +285,7 @@ export const pageContent = {
   "/hesap-numaralari": page(
     "Hesap Numaraları",
     "Bağış",
-    "Yedirenk’e ait doğrulanmış banka hesapları resmî süreç tamamlandığında burada yayımlanacaktır.",
+    "Yedirenk Derneği’nin Ziraat Bankası Türk lirası, Amerikan doları ve euro hesap bilgileri.",
   ),
   "/zekat-hesapla": page(
     "Zekât Hesaplama",
@@ -288,7 +305,7 @@ export const pageContent = {
   "/projeler": page(
     "Projeler",
     "Kalıcı İyilik",
-    "Eğitimden kültüre, yardımlaşmadan kalıcı eserlere destek bekleyen projeler.",
+    "Eğitimden kültüre ve yardımlaşmaya kadar desteğinizi bekleyen projeler.",
   ),
   "/yayinlar": page(
     "Yayınlarımız",
@@ -305,7 +322,7 @@ export const pageContent = {
 export const programDetails = {
   "/calismalarimiz/filistin-gazze": {
     lead: "Hayatın devam edebilmesi için acil ihtiyaçları, çocukların yarını için kalıcı desteği birlikte ulaştırıyoruz.",
-    image: "/assets/program-gaza.jpg",
+    image: "/assets/program-gaza.webp",
     focus: [
       [
         "Gıda Güvencesi",
@@ -335,7 +352,7 @@ export const programDetails = {
   },
   "/calismalarimiz/yetim": {
     lead: "Bir çocuğun yalnızca bugünkü ihtiyacını değil, güvenle büyüyebileceği bütün bir geleceği destekliyoruz.",
-    image: "/assets/program-orphan.jpg",
+    image: "/assets/program-orphan.webp",
     focus: [
       [
         "Düzenli Sponsorluk",
@@ -365,7 +382,7 @@ export const programDetails = {
   },
   "/calismalarimiz/katarakt": {
     lead: "Kısa süren bir operasyonun, bir insanın bağımsızlığına ve ailesine yeniden kavuşmasına vesile olmasını sağlıyoruz.",
-    image: "/assets/program-cataract.jpg",
+    image: "/assets/program-cataract.webp",
     focus: [
       [
         "Saha Taraması",
@@ -389,7 +406,7 @@ export const programDetails = {
   },
   "/calismalarimiz/suriye": {
     lead: "Uzun süreli krizin etkilediği ailelerin temel ihtiyaçlarını karşılarken eğitim ve sosyal uyumu da güçlendiriyoruz.",
-    image: "/assets/program-syria.jpg",
+    image: "/assets/program-syria.webp",
     focus: [
       ["Temel İhtiyaç", "Gıda, hijyen, giyim ve mevsimlik yardım programları."],
       ["Eğitim", "Okul materyali, öğrenme desteği ve çocuk atölyeleri."],
@@ -413,7 +430,7 @@ export const programDetails = {
   },
   "/calismalarimiz/su": {
     lead: "Temiz suya erişimi yalnızca bir yapı projesi değil; sağlık, eğitim ve güvenli yaşamın başlangıcı olarak görüyoruz.",
-    image: "/assets/program-water.jpg",
+    image: "/assets/program-water.webp",
     focus: [
       [
         "Su Kuyusu",
@@ -443,7 +460,7 @@ export const programDetails = {
   },
   "/calismalarimiz/insani-yardim": {
     lead: "Bağışı doğru kişiye, doğru zamanda ve insan onurunu koruyan bir yöntemle ulaştırıyoruz.",
-    image: "/assets/program-humanitarian.jpg",
+    image: "/assets/program-humanitarian.webp",
     focus: [
       ["Gıda", "İhtiyaca ve yerel beslenme alışkanlıklarına uygun destek."],
       ["Barınma", "Temel ev eşyası, kira ve geçici barınma çözümleri."],
@@ -461,7 +478,7 @@ export const programDetails = {
   },
   "/calismalarimiz/insan-haklari": {
     lead: "İnsan onurunun korunması için ihlalleri görünür kılıyor, bilgi üretiyor ve dayanışma zemini oluşturuyoruz.",
-    image: "/assets/program-rights.jpg",
+    image: "/assets/program-rights.webp",
     focus: [
       [
         "İzleme",
@@ -485,7 +502,7 @@ export const programDetails = {
   },
   "/calismalarimiz/insani-diplomasi": {
     lead: "İnsani erişimin zorlaştığı durumlarda diyaloğu, ortak zemini ve çözüm odaklı iletişimi güçlendiriyoruz.",
-    image: "/assets/program-diplomacy.jpg",
+    image: "/assets/program-diplomacy.webp",
     focus: [
       [
         "İnsani Erişim",
@@ -515,7 +532,7 @@ export const programDetails = {
   },
   "/calismalarimiz/acil-yardim": {
     lead: "Afet ve kriz anlarında hızlı hareket ederken güvenliği, koordinasyonu ve doğru ihtiyaç tespitini önceliklendiriyoruz.",
-    image: "/assets/program-emergency.jpg",
+    image: "/assets/program-emergency.webp",
     focus: [
       [
         "Hızlı Değerlendirme",
@@ -536,7 +553,7 @@ export const programDetails = {
   },
   "/calismalarimiz/arama-kurtarma": {
     lead: "Afetlere hazırlığı yalnızca ekipman değil; eğitim, disiplin ve düzenli tatbikatla oluşan bir kapasite olarak görüyoruz.",
-    image: "/assets/program-rescue.jpg",
+    image: "/assets/program-rescue.webp",
     focus: [
       [
         "Ekip Eğitimi",
@@ -563,7 +580,7 @@ export const programDetails = {
   },
   "/calismalarimiz/gonullu-calismalar": {
     lead: "Her gönüllünün yeteneğini, zamanını ve ilgisini sahadaki gerçek bir ihtiyaçla buluşturuyoruz.",
-    image: "/assets/program-volunteer.jpg",
+    image: "/assets/program-volunteer.webp",
     focus: [
       [
         "Saha Gönüllülüğü",
@@ -593,7 +610,7 @@ export const programDetails = {
   },
   "/calismalarimiz/farkindalik": {
     lead: "İyiliğin kalıcı olması için yalnızca yardım ulaştırmıyor; toplumsal sorumluluk ve dayanışma bilincini güçlendiriyoruz.",
-    image: "/assets/program-awareness.jpg",
+    image: "/assets/program-awareness.webp",
     focus: [
       [
         "Okul Programları",
@@ -623,7 +640,7 @@ export const programDetails = {
   },
   "/calismalarimiz/mavi-marmara": {
     lead: "İnsani yardım hafızasını, tanıklıkları ve dayanışma bilincini gelecek nesillere doğru kaynaklarla aktarıyoruz.",
-    image: "/assets/program-mavi.jpg",
+    image: "/assets/program-mavi.webp",
     focus: [
       [
         "Hafıza",

@@ -1,0 +1,64 @@
+Durum Kontrol alanı Kriter
+☐ Kurumsal kimlik Derneğin tescilli unvanı, açık adresi, telefon,
+e-posta, kütük/vergi bilgileri görünür.
+☐ Alan adı Başvurudaki alan adı ile ödeme sayfasının
+alan adı aynıdır; yönlendirmeler güvenlidir.
+☐ SSL/HTTPS Geçerli SSL sertifikası kurulu; tüm sayfalar
+HTTPS; karışık içerik hatası yok.
+☐ Gizlilik/KVKK Aydınlatma metni gerçek veri akışına
+uyarlanmış; aydınlatma ile açık rıza ayrıdır.
+☐ Çerezler Zorunlu olmayan çerezler rıza öncesinde
+çalışmıyor; reddetme ve tercih yönetimi var.
+☐ Bağış sözleşmesi Online Bağış Ön Bilgilendirme ve
+Sözleşmesi ödeme öncesi erişilebilir.
+☐ İade politikası Bağış İptal ve İade Politikası erişilebilir;
+başvuru kanalı çalışıyor.
+☐ Mesafeli satış Ürün/hizmet satışı yoksa satış metinleri
+bağış sayfasına uygulanmıyor; satış varsa
+dinamik sipariş bilgileri mevcut.
+☐ Tutarlar Hazır bağış tutarları ve özel tutar alanı açık;
+para birimi ve tek seferlik/düzenli seçimi
+görünür.
+☐ Kampanya izni Yardım toplama izni gerektiren
+kampanyalarda izin makamı, tarih-sayı ve
+DERBİS no görünür.
+☐ Ödeme özeti Bağış amacı, tutar, para birimi, varsa tekrar
+sıklığı ve toplam işlem özeti onaydan önce
+görünür.
+☐ Onay kutusu Bağış sözleşmesi için ayrı onay; KVKK için
+rıza istenmiyor; pazarlama izni isteğe bağlı
+ve ayrı.
+☐ Ödeme güvenliği 3D Secure/sağlayıcı gereklilikleri aktif; tam
+kart numarası/CVV dernek sisteminde
+tutulmuyor veya PCI yükümlülükleri
+karşılanıyor.
+☐ Başarı/başarısızlık Başarılı, başarısız, iptal ve beklemede
+senaryoları test edildi; çift tahsilat önleme
+mevcut.
+☐ Bildirim Başarılı işlem sonrası bağışçıya tutar, tarih,
+işlem no ve iletişim bilgisi gönderiliyor.
+☐ Düzenli bağış İptal kanalı, bir sonraki tahsilat tarihi ve
+tekrar sıklığı açık; iptal testi yapıldı.
+☐ Log ve delil Sözleşme sürümü, zaman damgası, IP/işlem
+no ve onay kayıtları güvenli biçimde
+tutuluyor.
+☐ İade süreci İade yetkilileri, yönetim onayı, muhasebe
+kaydı ve ödeme sağlayıcısı prosedürü
+belirlendi.
+☐ Mobil uyum Sözleşme bağlantıları ve ödeme akışı
+mobilde okunabilir; butonlar çakışmıyor.
+☐ Erişilebilirlik Kontrast, klavye kullanımı, form etiketleri
+ve hata mesajları erişilebilir.
+☐ Test bağışı Canlı ortamda düşük tutarlı test yapıldı;
+banka paneli, e-posta ve muhasebe kaydı
+eşleşiyor.
+Ödeme Sayfasında Önerilen Metin Yerleşimi
+Örnek akış
+1) Bağış amacı ve izin bilgisi → 2) Tutar ve para birimi → 3) Tek seferlik/düzenli tercih → 4) Bağışçı bilgileri →
+5) İşlem özeti → 6) Bağış sözleşmesi onayı → 7) İsteğe bağlı iletişim izni → 8) Güvenli ödeme butonu → 9)
+Başarı sayfası ve e-posta teyidi.
+Bankaya Teslim Edilecek Kurumsal Evraklar İçin Not
+Ekran görüntüsündeki imza sirküleri, kurum sicil belgesi, vergi levhası, internet sitesi adresi, ortak/temsilci
+kimlikleri ve e-posta bilgileri bankanın kurumsal başvuru evraklarıdır. Derneklerde “ortak” yerine banka, yetkili
+yönetim kurulu üyeleri/temsilciler ve imza yetkililerine ilişkin belgeleri isteyebilir. Kesin liste doğrudan Kuveyt
+Türk kurumsal/sanal POS biriminden teyit edilmelidir.

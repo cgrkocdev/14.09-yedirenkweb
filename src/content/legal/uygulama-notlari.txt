@@ -1,0 +1,31 @@
+Bağış, satış değildir
+Dernek yalnızca karşılıksız bağış kabul ediyorsa “mesafeli satış sözleşmesi” esas belge değildir. Bağışçıya bir
+mal veya hizmet verilmiyor ve bağışın karşılığında bedel niteliğinde bir edim sunulmuyorsa, bağış akışı için bu
+paketteki “Online Bağış Ön Bilgilendirme ve Sözleşmesi” kullanılmalıdır. Mesafeli satış metinleri yalnızca ürün,
+bilet, eğitim, abonelik veya başka bir mal/hizmet satışı yapılacaksa yayımlanmalıdır.
+Yayın öncesinde netleştirilecek bilgiler
+ Derneğin tescilli tam unvanı, kısa adı, dernek kütük numarası, vergi numarası ve merkez adresi.
+ Web sitesi alan adı, kurumsal e-posta, telefon, KEP adresi ve KVKK başvuru kanalı.
+ Ödeme altyapısı: banka, sanal POS/ödeme kuruluşu, 3D Secure kullanımı ve kart verilerinin kim tarafından
+işlendiği.
+ Tek seferlik ve/veya düzenli bağış seçenekleri; para birimleri; minimum/maksimum bağış tutarı.
+ Bağışların derneğin genel tüzük amaçları için mi, yoksa belirli bir yardım toplama kampanyası için mi alındığı.
+ Yardım toplama kampanyası varsa izin makamı, izin tarihi/sayısı, DERBİS izin numarası, kampanya süresi ve
+coğrafi kapsamı.
+ Hosting, e-posta, CRM, analiz, reklam, canlı destek ve benzeri tedarikçiler ile yurt dışına veri aktarımı olup
+olmadığı.
+ Gerçekte kullanılan çerezlerin adları, sağlayıcıları, süreleri ve amaçları.
+ Ürün veya hizmet satışı yapılacaksa ürün bilgileri, fiyatlar, teslimat/iade koşulları ve iade adresi.
+Sitedeki onay kutuları için temel düzen
+ Bağış sözleşmesi: “Online Bağış Ön Bilgilendirme ve Sözleşmesini okudum ve bağış işlemini onaylıyorum.”
+ KVKK aydınlatması: Metin bağlantısı görünür olmalı; aydınlatma için “rıza/onay” istenmemelidir. İstenirse
+yalnızca “okudum ve bilgi edindim” geri bildirimi alınabilir.
+ Pazarlama/iletişim izni: Bağışın şartı olmadan, ayrı ve isteğe bağlı bir kutu ile alınmalıdır.
+ Analitik/pazarlama çerezleri: “Kabul et”, “Reddet” ve “Tercihleri yönet” seçenekleri eşit erişilebilirlikte
+sunulmalıdır.
+Teknik unsurlar
+ SSL sertifikası bir sözleşme değildir; alan adında HTTPS etkin olmalı ve sertifika zinciri geçerli olmalıdır.
+ Ödeme sayfası aktif olmalı; tutar, para birimi, tek seferlik/düzenli seçim, işlem özeti ve sözleşme bağlantıları
+ödeme öncesinde görünmelidir.
+ Kart numarası, CVV ve benzeri hassas ödeme verileri dernek sunucusunda tutulmamalı; ödeme sağlayıcısının
+güvenli sayfası/entegrasyonu kullanılmalıdır.

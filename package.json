@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node -e \"const fs=require('fs'); fs.mkdirSync('dist/server',{recursive:true}); fs.mkdirSync('dist/.openai',{recursive:true}); fs.copyFileSync('scripts/server.js','dist/server/index.js'); fs.copyFileSync('.openai/hosting.json','dist/.openai/hosting.json')\"",
+    "check:assets": "node scripts/check-assets.mjs",
+    "build:godaddy": "npm run check:assets && vite build && node scripts/package-godaddy.mjs",
     "preview": "vite preview",
     "test:site": "node scripts/test-site-consistency.mjs"
   },

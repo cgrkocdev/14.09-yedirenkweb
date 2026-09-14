@@ -18,12 +18,12 @@ import { pageContent, programDetails } from "./siteData";
 
 const visualByPath = (path) =>
   path.includes("su")
-    ? "/assets/child.jpg"
+    ? "/assets/child.webp"
     : path.includes("acil") || path.includes("yardim") || path.includes("gazze")
-      ? "/assets/aid.jpg"
+      ? "/assets/aid.webp"
       : path.includes("gonullu") || path.includes("sponsor")
-        ? "/assets/volunteer.jpg"
-        : "/assets/education.jpg";
+        ? "/assets/volunteer.webp"
+        : "/assets/education.webp";
 
 const Field = ({ label, ...props }) => (
   <label className="form-field">
@@ -45,7 +45,7 @@ function StandardContent({ data, path }) {
   return (
     <div className="container detail-grid">
       <article className="detail-copy">
-        <span className="eyebrow">İYİLİĞİN İZİNDE</span>
+        <span className="eyebrow">ÖZENLE VE GÜVENLE</span>
         <h2>
           Her adımda insan onuru,
           <br />
@@ -77,7 +77,7 @@ function StandardContent({ data, path }) {
         </div>
       </article>
       <aside className="detail-aside">
-        <img src={visualByPath(path)} alt="" />
+        <img src={visualByPath(path)} alt="" loading="lazy" decoding="async" />
         <div>
           <small>YEDİRENK YAKLAŞIMI</small>
           <p>“Gerçek iyilik gösterişte değil, samimiyettedir.”</p>
@@ -114,7 +114,11 @@ function ProgramContent({ data, detail, pathname }) {
           </div>
         </div>
         <div className="program-image">
-          <img src={detail.image} alt={`${data.title} çalışmaları`} />
+          <img
+            src={detail.image}
+            alt={`${data.title} çalışmaları`}
+            decoding="async"
+          />
           <span>
             <ShieldCheck />
             <b>İhtiyaç odaklı</b>
@@ -187,7 +191,12 @@ function ProgramContent({ data, detail, pathname }) {
       </section>
       <section className="program-callout">
         <div className="container">
-          <img src="/assets/yedirenk-mark-transparent.png" alt="" />
+          <img
+            src="/assets/yedirenk-mark-transparent.webp"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
           <div>
             <span>BU ÇALIŞMAYA ORTAK OL</span>
             <h2>{detail.callout}</h2>
@@ -212,7 +221,7 @@ function ProgramContent({ data, detail, pathname }) {
         <div>
           {related.map(([path, item]) => (
             <Link to={path} key={path}>
-              <img src={item.image} />
+              <img src={item.image} alt="" loading="lazy" decoding="async" />
               <b>{pageContent[path].title}</b>
             </Link>
           ))}
@@ -350,7 +359,12 @@ function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-info">
-        <img src="/assets/yedirenk-mark-transparent.png" />
+        <img
+          src="/assets/yedirenk-mark-transparent.webp"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
         <span className="eyebrow light">YEDİRENK HESABIM</span>
         <h2>
           İyilik yolculuğunu
@@ -406,29 +420,29 @@ function ListingPage({ type }) {
           [
             "Yaz Atölyeleri Çocukların Hayalleriyle Renklendi",
             "18 Temmuz 2026",
-            "/assets/education.jpg",
+            "/assets/education.webp",
           ],
           [
             "Dayanışma Paketlerimiz 250 Aileye Ulaştı",
             "11 Temmuz 2026",
-            "/assets/aid.jpg",
+            "/assets/aid.webp",
           ],
           [
             "Ortak Hafıza Buluşmaları Başladı",
             "04 Temmuz 2026",
-            "/assets/child.jpg",
+            "/assets/child.webp",
           ],
         ]
       : [
-          ["Çocuk Akademileri", "Eğitim", "/assets/education.jpg"],
-          ["Kültür Köprüleri", "Kültür", "/assets/child.jpg"],
-          ["Mahalle Dayanışması", "Yardımlaşma", "/assets/aid.jpg"],
+          ["Çocuk Akademileri", "Eğitim", "/assets/education.webp"],
+          ["Kültür Köprüleri", "Kültür", "/assets/child.webp"],
+          ["Mahalle Dayanışması", "Yardımlaşma", "/assets/aid.webp"],
         ];
   return (
     <div className="container listing-grid">
       {items.map((x, i) => (
         <article key={x[0]}>
-          <img src={x[2]} alt="" />
+          <img src={x[2]} alt="" loading="lazy" decoding="async" />
           <div>
             <small>{x[1]}</small>
             <h3>{x[0]}</h3>
@@ -503,7 +517,7 @@ export function SitePage({ notify, addCart }) {
             <div className="container form-layout">
               <div>
                 <h2>
-                  İyiliğin izinde
+                  Özenle ve güvenle
                   <br />
                   <em>birlikte yürüyelim.</em>
                 </h2>

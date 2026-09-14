@@ -1,0 +1,74 @@
+Bu metin bağış akışı içindir
+Bağışçıya bağış karşılığında mal veya hizmet sunulmuyorsa bu metin kullanılabilir. Ürün/hizmet satışı veya
+bilet karşılığı ödeme varsa mesafeli satış metinleri ayrıca uygulanmalıdır.
+1.Taraflar
+Dernek Bağışçı
+Unvan: Yedirenk Eğitim, Kültür ve Yardımlaşma Derneği
+Adres: Kızılırmak Mah. 1450. Sok. 16/6 Çankaya/Ankara
+Bağış ekranında bildirilen ad-soyad/unvan, e-posta, telefon
+ve ödeme bilgilerine sahip gerçek veya tüzel kişi.
+Web: www.yedirenkdernegi.org
+E-posta: iletisim@yedirenkdernegi.org
+Telefon: 0533 640 77 65
+2.Sözleşmenin Konusu
+Bu sözleşmenin konusu, Bağışçının kendi serbest iradesiyle seçtiği tutarı Derneğe karşılıksız olarak bağışlaması,
+ödemenin elektronik ortamda gerçekleştirilmesi ve tarafların bu işleme ilişkin hak ve yükümlülüklerinin
+belirlenmesidir.
+3.İşlem Özeti
+Alan İşlem sırasında gösterilecek bilgi
+Bağış amacı/kampanya Genel Bağış veya bağışçının seçtiği proje/kampanya adı
+Bağış tutarı ve para birimi Bağışçının ekranda seçtiği/girdiği tutar
+Bağış türü Tek seferlik bağış
+Ödeme yöntemi Kredi kartı / banka kartı
+Ödeme altyapısı T.C. Ziraat Bankası A.Ş. – Havale/EFT
+Kampanya izin bilgisi Genel bağışlarda uygulanmaz. 2860 sayılı Yardım Toplama
+Kanunu kapsamında izne tabi bir yardım toplama faaliyeti
+yürütülmesi halinde ilgili makam, izin tarih ve sayısı ile DERBİS
+yardım toplama izin numarası işlem ekranında gösterilir.Sayfa 1 / 3 | Taslak v0.9 - 06.08.2026
+4.Bağışın Niteliği
+1. Bağış karşılıksızdır; Bağışçı, bağış karşılığında mal, hizmet, üyelik, kazanç, faiz veya benzeri bir karşı edim talep
+2. 3. 4. etmez.
+Dernek, bağışı tüzüğünde belirtilen amaçlar ile bağış ekranında açıklanan kampanya/proje amacı
+doğrultusunda kullanır. Belirli amaçlı bağışlarda hukuken ve fiilen mümkün olduğu ölçüde bağışçının amacı
+gözetilir.
+Bağış tutarı, ödeme öncesinde Bağışçıya açıkça gösterilir. Bağışçı onay vermeden ödeme başlatılmaz.
+Bağışçının vergi avantajı, makbuz veya indirim beklentisi varsa bunun kendi hukuki/mali durumuna
+uygulanabilirliğini mali müşaviriyle değerlendirmesi gerekir; Dernek kişiye özel vergi garantisi vermez.
+5.Ödeme ve Güvenlik
+5. Ödeme, T.C. Ziraat Bankası A.Ş. – Havale/EFT altyapısı üzerinden yürütülür. 3D Secure veya
+benzeri doğrulama yöntemleri uygulanabilir.
+6. Kart bilgilerinin hangi tarafça işlendiği ve saklandığı teknik entegrasyona göre belirlenir. Dernek tam kart
+numarası/CVV saklamıyorsa bu durum Gizlilik Politikasında açıkça belirtilir.
+7. Ödeme başarısız, beklemede veya iptal durumundaysa bağış tamamlanmış sayılmaz; kesin durum ödeme
+kuruluşu/banka kayıtlarına göre belirlenir.
+6.Düzenli Bağış
+8. Düzenli bağış seçeneği sunuluyorsa sıklık, tutar ve ilk/sonraki tahsilat tarihleri işlem öncesinde açıkça
+gösterilir.
+9. Düzenli bağış sunulmuyor. Tek seferlik ödemeler ile işlemler sağlanıyor buna göre bu bölümü düzenle.
+7.Belgelendirme ve Bildirim
+Başarılı işlem sonrasında Bağışçıya ekranda ve/veya e-posta ile işlem özeti gönderilir. Banka/ödeme kuruluşu
+dekontu, hesap özeti veya elektronik işlem kaydı mevzuat kapsamında gelir belgesi niteliğinde kullanılabilir.
+Dernek, mevzuat veya uygulama gerektiriyorsa ayrıca elektronik/kağıt belge düzenleyebilir.
+8.İptal ve İade
+Bağışın karşılıksız niteliği nedeniyle mal satışlarındaki cayma hakkı bağış işlemine aynen uygulanmaz. Hatalı tutar,
+mükerrer tahsilat, yetkisiz işlem, teknik hata, kampanyanın iptali veya kanunen zorunlu diğer hallerde “Bağış İptal
+ve İade Politikası” uygulanır. Bağışın amaca tahsis edilmesi veya harcanması iade imkanını etkileyebilir.
+9.Bağışçının Beyanları
+ Bağış işlemini kendi serbest iradesiyle ve ödeme aracını kullanmaya yetkili olarak yaptığını,
+ Girdiği bilgilerin doğru ve güncel olduğunu,
+ Bağış tutarının kendisine ait veya kullanmaya yetkili olduğu kaynaktan geldiğini,
+ Suç geliri, yaptırım ihlali, sahtecilik veya hukuka aykırı amaç bulunmadığını,
+ Ön bilgilendirmeyi ve iade politikasını ödeme öncesinde inceleme imkanına sahip olduğunu
+kabul ve beyan eder.
+10. Derneğin Hakları
+Dernek; hukuka aykırılık, şüpheli işlem, teknik hata, yaptırım/uyum riski, yanlış kampanya yönlendirmesi veya
+bağışın kabulünün dernek amaçlarına aykırılığı halinde bağışı reddedebilir, incelemeye alabilir veya mevzuata
+uygun şekilde iade edebilir. Gerekli hallerde yetkili makamlara bildirim yapılabilir.
+11. Kişisel Veriler
+Kişisel verilerin işlenmesine ilişkin ayrıntılar “Gizlilik Politikası ve KVKK Aydınlatma Metni”nde yer alır. Pazarlama
+iletişimi için gereken açık rıza, bağışın şartı olmadan ayrı bir seçimle alınır.
+12. Uyuşmazlık ve Yürürlük
+Zorunlu görev ve yetki kuralları saklı kalmak üzere Türk hukuku uygulanır. Taraflar önce
+iletisim@yedirenkdernegi.org üzerinden çözüm arar. Bu sözleşme, Bağışçının ödeme öncesinde ilgili onay kutusunu
+işaretleyip bağışı tamamlamasıyla elektronik ortamda kurulur.
+Yürürlük tarihi: 21.08.2026 | Sürüm: 1.0

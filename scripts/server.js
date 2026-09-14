@@ -3,12 +3,114 @@ const USER_COOKIE = "yedirenk_user";
 const SESSION_TTL = 30 * 60;
 const attempts = new Map();
 
+export const TCMB_EXCHANGE_RATE_URL = "https://www.tcmb.gov.tr/kurlar/today.xml";
+
+const xmlValue = (block, tag) => {
+  const match = block.match(new RegExp(`<${tag}>([^<]+)</${tag}>`, "i"));
+  return match ? match[1].trim() : "";
+};
+
+const isoDateFromTcmb = (xml) => {
+  const raw =
+    xml.match(/<Tarih_Date\b[^>]*\bDate="([^"]+)"/i)?.[1] ||
+    xml.match(/<Tarih_Date\b[^>]*\bTarih="([^"]+)"/i)?.[1] ||
+    "";
+  const parts = raw.split(/[./-]/).map(Number);
+  if (parts.length !== 3 || parts.some((part) => !Number.isInteger(part)))
+    throw new Error("TCMB kur tarihi okunamadı.");
+  const [first, second, third] = parts;
+  const year = first > 1900 ? first : third;
+  const month = first > 1900 ? second : second;
+  const day = first > 1900 ? third : first;
+  const date = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
+    throw new Error("TCMB kur tarihi geçersiz.");
+  return date;
+};
+
+export function parseTcmbExchangeRates(xml) {
+  if (typeof xml !== "string" || !xml.includes("<Tarih_Date"))
+    throw new Error("TCMB yanıtı geçersiz.");
+  const rates = { TRY: 1 };
+  for (const code of ["USD", "EUR", "GBP"]) {
+    const block = xml.match(
+      new RegExp(
+        `<Currency\\b[^>]*(?:CurrencyCode|Kod)="${code}"[^>]*>[\\s\\S]*?</Currency>`,
+        "i",
+      ),
+    )?.[0];
+    if (!block) throw new Error(`${code} TCMB kur kaydında bulunamadı.`);
+    const unit = Number(xmlValue(block, "Unit") || 1);
+    const selling = Number(xmlValue(block, "ForexSelling"));
+    const rate = selling / unit;
+    if (!Number.isFinite(rate) || rate <= 0 || rate > 10_000)
+      throw new Error(`${code} TCMB döviz satış kuru geçersiz.`);
+    rates[code] = Math.round(rate * 10000) / 10000;
+  }
+  return {
+    rates,
+    date: isoDateFromTcmb(xml),
+    source: "Türkiye Cumhuriyet Merkez Bankası",
+    sourceUrl: TCMB_EXCHANGE_RATE_URL,
+    rateType: "Döviz satış",
+    fetchedAt: new Date().toISOString(),
+  };
+}
+
+export async function fetchOfficialExchangeRates() {
+  const response = await fetch(TCMB_EXCHANGE_RATE_URL, {
+    headers: {
+      Accept: "application/xml,text/xml;q=0.9,*/*;q=0.1",
+      "User-Agent": "Yedirenk-Dernegi/1.0",
+    },
+  });
+  if (!response.ok)
+    throw new Error(`TCMB kur servisi ${response.status} durum kodu döndürdü.`);
+  return parseTcmbExchangeRates(await response.text());
+}
+
+export async function exchangeRatesApi(request) {
+  const reply = (body, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control":
+          status === 200
+            ? "public, max-age=60, s-maxage=300, stale-while-revalidate=300"
+            : "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  if (request.method !== "GET")
+    return reply({ message: "Yöntem desteklenmiyor." }, 405);
+  try {
+    return reply(await fetchOfficialExchangeRates());
+  } catch (error) {
+    return reply(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Resmî döviz kurları alınamadı.",
+      },
+      503,
+    );
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/exchange-rates")
+      return exchangeRatesApi(request);
     if (url.pathname === "/api/analytics") return analyticsIngest(request, env);
     if (url.pathname === "/api/public/applications")
       return applicationIngest(request, env);
+    if (url.pathname === "/api/public/online-donations")
+      return donationRequestApi(request, env);
+    if (url.pathname === "/api/public/content")
+      return publicContentApi(request, env);
     if (url.pathname.startsWith("/api/account/"))
       return accountApi(request, env, url);
     if (url.pathname.startsWith("/api/admin/"))
@@ -24,6 +126,152 @@ export default {
     return secure(response);
   },
 };
+
+async function publicContentApi(request, env) {
+  const headers = {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-cache",
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (request.method !== "GET")
+    return new Response(JSON.stringify({ message: "Yöntem desteklenmiyor." }), {
+      status: 405,
+      headers,
+    });
+  if (!env.YEDIRENK_CMS)
+    return new Response(JSON.stringify({ content: null }), { headers });
+  const data = await env.YEDIRENK_CMS.get("content");
+  return new Response(JSON.stringify({ content: data ? JSON.parse(data) : null }), {
+    headers,
+  });
+}
+
+export async function donationRequestApi(request, env) {
+  const reply = (body, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  if (request.method !== "POST")
+    return reply({ message: "Yöntem desteklenmiyor." }, 405);
+  if (!sameOrigin(request)) return reply({ message: "Geçersiz kaynak." }, 403);
+  if (Number(request.headers.get("content-length") || 0) > 9_000_000)
+    return reply({ message: "Bağış isteği çok büyük." }, 413);
+  let body;
+  let receiptUpload = null;
+  try {
+    if ((request.headers.get("content-type") || "").includes("multipart/form-data")) {
+      const formData = await request.formData();
+      body = JSON.parse(String(formData.get("payload") || "{}"));
+      const file = formData.get("receipt");
+      if (file && typeof file.arrayBuffer === "function") {
+        if (file.size < 1 || file.size > 8 * 1024 * 1024)
+          return reply({ message: "Dekont dosyası en fazla 8 MB olabilir." }, 413);
+        if (![
+          "application/pdf",
+          "image/jpeg",
+          "image/png",
+        ].includes(file.type))
+          return reply({ message: "Dekont biçimi desteklenmiyor." }, 415);
+        receiptUpload = {
+          name: String(file.name || "dekont").replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120),
+          type: file.type,
+          size: file.size,
+          data: await file.arrayBuffer(),
+        };
+      }
+    } else {
+      body = await request.json();
+    }
+  } catch {
+    return reply({ message: "Bağış bilgileri okunamadı." }, 400);
+  }
+  const amount = Number(body.amount);
+  const clean = {
+    firstName: String(body.firstName || "").trim().slice(0, 80),
+    lastName: String(body.lastName || "").trim().slice(0, 80),
+    phone: String(body.phone || "").trim().slice(0, 30),
+    email: String(body.email || "").trim().toLowerCase().slice(0, 254),
+    description: String(body.description || "").trim().slice(0, 500),
+    city: String(body.city || "").trim().slice(0, 100),
+    district: String(body.district || "").trim().slice(0, 100),
+    campaign: String(body.campaign || "").trim().slice(0, 500),
+    amount,
+    paymentMethod: String(body.paymentMethod || "").slice(0, 40),
+    bankAccountCode: String(body.bankAccountCode || "").slice(0, 10),
+    bankAccountIban: String(body.bankAccountIban || "").slice(0, 40),
+    transferAmount: Number(body.transferAmount),
+    receipt: receiptUpload
+      ? {
+          name: receiptUpload.name,
+          type: receiptUpload.type,
+          size: receiptUpload.size,
+        }
+      : null,
+    consent: body.consent === true,
+    items: Array.isArray(body.items)
+      ? body.items.slice(0, 30).map((item) => ({
+          campaignCode: String(item?.campaignCode || "").slice(0, 80),
+          donationTypeCode: String(item?.donationTypeCode || "").slice(0, 80),
+          donationGroupCode: String(item?.donationGroupCode || "").slice(0, 80),
+          title: String(item?.title || "").slice(0, 160),
+          quantity: Math.max(1, Math.min(1000, Number(item?.quantity) || 1)),
+          unitPrice: Math.max(0, Number(item?.unitPrice) || 0),
+        }))
+      : [],
+    createdAt: Date.now(),
+    status: "received",
+  };
+  if (
+    !clean.firstName ||
+    !clean.lastName ||
+    !clean.phone ||
+    !/^\S+@\S+\.\S+$/.test(clean.email) ||
+    !clean.description ||
+    !clean.campaign ||
+    !Number.isFinite(clean.amount) ||
+    clean.amount < 1 ||
+    clean.amount > 10_000_000 ||
+    !clean.consent ||
+    clean.items.length === 0 ||
+    clean.paymentMethod !== "EFT_HAVALE" ||
+    !["TRY", "USD", "EUR"].includes(clean.bankAccountCode) ||
+    !clean.bankAccountIban ||
+    !Number.isFinite(clean.transferAmount) ||
+    clean.transferAmount <= 0 ||
+    !receiptUpload
+  )
+    return reply({ message: "Bağış bilgilerini kontrol edin." }, 400);
+
+  const referenceNumber = `YD-${new Date(clean.createdAt)
+    .toISOString()
+    .slice(0, 10)
+    .replaceAll("-", "")}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  if (String(body.website || "").trim())
+    return reply({ ok: true, referenceNumber, status: "received" }, 201);
+
+  const store =
+    env.YEDIRENK_DONATIONS || env.YEDIRENK_APPLICATIONS || env.YEDIRENK_CMS;
+  if (!store)
+    return reply({ message: "Bağış kayıt servisi yapılandırılmamış." }, 503);
+  const receiptKey = `donation-receipt:${clean.createdAt}:${referenceNumber}`;
+  await store.put(receiptKey, receiptUpload.data, {
+    metadata: {
+      name: receiptUpload.name,
+      type: receiptUpload.type,
+      size: receiptUpload.size,
+    },
+  });
+  await store.put(
+    `donation:${clean.createdAt}:${referenceNumber}`,
+    JSON.stringify({ ...clean, receiptKey, referenceNumber }),
+  );
+  return reply({ ok: true, referenceNumber, status: "received" }, 201);
+}
 
 async function applicationIngest(request, env) {
   const reply = (body, status = 200) =>
@@ -413,7 +661,6 @@ async function analyticsIngest(request, env) {
   if (request.method !== "POST")
     return reply({ message: "Yöntem desteklenmiyor." }, 405);
   if (!sameOrigin(request)) return reply({ message: "Geçersiz kaynak." }, 403);
-  if (!env.YEDIRENK_ANALYTICS) return reply({ ok: true });
   if (Number(request.headers.get("content-length") || 0) > 8192)
     return reply({ message: "İstek çok büyük." }, 413);
   let b;
@@ -426,6 +673,7 @@ async function analyticsIngest(request, env) {
     "consent_accepted",
     "page_view",
     "page_duration",
+    "click",
     "cart_add",
     "checkout_start",
     "donation_success",
@@ -451,14 +699,75 @@ async function analyticsIngest(request, env) {
       .trim()
       .slice(0, 64),
     userAgent: String(request.headers.get("User-Agent") || "").slice(0, 300),
+    country: String(request.headers.get("CF-IPCountry") || "").slice(0, 12),
+    city: String(request.headers.get("CF-IPCity") || "").slice(0, 100),
     timestamp: Date.now(),
   };
-  await env.YEDIRENK_ANALYTICS.put(
-    `event:${event.timestamp}:${crypto.randomUUID()}`,
-    JSON.stringify(event),
-    { expirationTtl: 30 * 86400 },
-  );
+  const deliveries = [];
+  if (env.YEDIRENK_ANALYTICS)
+    deliveries.push(
+      env.YEDIRENK_ANALYTICS.put(
+        `event:${event.timestamp}:${crypto.randomUUID()}`,
+        JSON.stringify(event),
+        { expirationTtl: 30 * 86400 },
+      ),
+    );
+  if (env.META_ACCESS_TOKEN)
+    deliveries.push(sendMetaConversionEvent(event, request, env));
+  await Promise.allSettled(deliveries);
   return reply({ ok: true }, 202);
+}
+
+async function sendMetaConversionEvent(event, request, env) {
+  const eventNames = {
+    cart_add: "AddToCart",
+    checkout_start: "InitiateCheckout",
+    donation_success: "Purchase",
+  };
+  const eventName = eventNames[event.event];
+  if (!eventName) return;
+  const pixelId = String(env.META_PIXEL_ID || "2840175163017546").trim();
+  const accessToken = String(env.META_ACCESS_TOKEN || "").trim();
+  if (!/^\d{5,30}$/.test(pixelId) || !accessToken) return;
+  const sourceUrl = new URL(event.path || "/", request.url).href;
+  const customData = {};
+  const amount = Number(event.data?.amount);
+  if (Number.isFinite(amount) && amount > 0) {
+    customData.value = amount;
+    customData.currency = "TRY";
+  }
+  const payload = {
+    data: [
+      {
+        event_name: eventName,
+        event_time: Math.floor(event.timestamp / 1000),
+        event_source_url: sourceUrl,
+        action_source: "website",
+        event_id:
+          typeof event.data?.metaEventId === "string" &&
+          /^[a-zA-Z0-9:._-]{1,120}$/.test(event.data.metaEventId)
+            ? event.data.metaEventId
+            : `${event.sessionId}:${event.event}:${event.timestamp}`,
+        user_data: {
+          client_ip_address: event.ip,
+          client_user_agent: event.userAgent,
+        },
+        ...(Object.keys(customData).length ? { custom_data: customData } : {}),
+      },
+    ],
+    access_token: accessToken,
+  };
+  const testEventCode = String(env.META_TEST_EVENT_CODE || "").trim();
+  if (testEventCode) payload.test_event_code = testEventCode;
+  const response = await fetch(
+    `https://graph.facebook.com/${encodeURIComponent(pixelId)}/events`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  if (!response.ok) throw new Error(`Meta CAPI request failed: ${response.status}`);
 }
 function safeAnalyticsData(data) {
   if (!data || typeof data !== "object" || Array.isArray(data)) return {};

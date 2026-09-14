@@ -6,3 +6,16 @@ dist/
 .DS_Store
 ._*
 npm-debug.log*
+.vercel
+.env*
+/public/assets/._*
+/public/assets/**/._*
+/godaddy/api/config.php
+/godaddy/api/uploads/*
+!/godaddy/api/uploads/.htaccess
+*.zip
+test-results/
+.vscode/
+*-check.png
+gazze-*-kontrol.png
+gazze-*-duzen.png
