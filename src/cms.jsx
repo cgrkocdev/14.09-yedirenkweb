@@ -110,6 +110,37 @@ const withProjectCardImages = (projects, defaults) =>
     };
   });
 
+const withRequiredTurkeyProject = (projects, defaults) => {
+  const next = withProjectCardImages(projects, defaults);
+  const turkeyProject = (defaults || []).find(
+    (project) => project.slug === "turkiye-projeleri",
+  );
+  if (!turkeyProject) return next;
+  const existingIndex = next.findIndex(
+    (project) => project.slug === "turkiye-projeleri",
+  );
+  if (existingIndex >= 0) {
+    next[existingIndex] = turkeyProject;
+    return next;
+  }
+  const gazaIndex = next.findIndex((project) => project.slug === "gazze-yardim");
+  next.splice(gazaIndex >= 0 ? gazaIndex + 1 : 0, 0, turkeyProject);
+  return next;
+};
+
+const withRequiredTurkeyCategory = (categories, defaults) => {
+  const next = [...(categories || [])];
+  const turkeyCategory = (defaults || []).find((category) =>
+    String(category).toLocaleLowerCase("tr-TR").startsWith("türkiye"),
+  );
+  if (!turkeyCategory || next.includes(turkeyCategory)) return next;
+  const gazaIndex = next.findIndex((category) =>
+    String(category).toLocaleLowerCase("tr-TR").includes("gazze"),
+  );
+  next.splice(gazaIndex >= 0 ? gazaIndex + 1 : 0, 0, turkeyCategory);
+  return next;
+};
+
 export function CmsProvider({ defaults, children }) {
   const cleanDefaults = useMemo(
     () => removeLegacyWording(defaults),
@@ -146,7 +177,6 @@ export function CmsProvider({ defaults, children }) {
           upgradeZakatProject =
             Number(saved.settings?.projectsVersion || 0) < 9,
           addGazaProject = Number(saved.settings?.projectsVersion || 0) < 10,
-          addTurkeyProjects = Number(saved.settings?.projectsVersion || 0) < 61,
           upgradeTurkeyProjects =
             Number(saved.settings?.projectsVersion || 0) < 65,
           upgradeGazaSingleProject =
@@ -731,8 +761,7 @@ export function CmsProvider({ defaults, children }) {
                     (project) => project.slug === "toplu-yemek",
                   )
                 : [],
-              addTurkeyProjects &&
-                !(saved.projects || cleanDefaults.projects).some(
+              !(saved.projects || cleanDefaults.projects).some(
                   (project) => project.slug === "turkiye-projeleri",
                 )
                 ? cleanDefaults.projects.filter(
@@ -754,12 +783,13 @@ export function CmsProvider({ defaults, children }) {
                   )?.cardImage ||
                   project.image,
             })),
-          projectCategories: (
-            saved.projectCategories || cleanDefaults.projectCategories
-          ).filter(
-            (category) =>
-              !cleanupPlaceholderProjects ||
-              !/^Yeni Proje(ler)?$/i.test(category),
+          projectCategories: withRequiredTurkeyCategory(
+            (saved.projectCategories || cleanDefaults.projectCategories).filter(
+              (category) =>
+                !cleanupPlaceholderProjects ||
+                !/^Yeni Proje(ler)?$/i.test(category),
+            ),
+            cleanDefaults.projectCategories,
           ),
         };
       }
@@ -808,9 +838,13 @@ export function CmsProvider({ defaults, children }) {
           home: { ...current.home, ...published.home },
           pages: { ...current.pages, ...published.pages },
           sitePages: { ...current.sitePages, ...published.sitePages },
-          projects: withProjectCardImages(
+          projects: withRequiredTurkeyProject(
             published.projects || current.projects,
             cleanDefaults.projects,
+          ),
+          projectCategories: withRequiredTurkeyCategory(
+            published.projectCategories || current.projectCategories,
+            cleanDefaults.projectCategories,
           ),
         }));
       })
@@ -866,9 +900,13 @@ export function CmsProvider({ defaults, children }) {
           home: { ...cleanDefaults.home, ...parsed.home },
           pages: { ...cleanDefaults.pages, ...parsed.pages },
           footer: { ...cleanDefaults.footer, ...parsed.footer },
-          projects: withProjectCardImages(
+          projects: withRequiredTurkeyProject(
             parsed.projects || cleanDefaults.projects,
             cleanDefaults.projects,
+          ),
+          projectCategories: withRequiredTurkeyCategory(
+            parsed.projectCategories || cleanDefaults.projectCategories,
+            cleanDefaults.projectCategories,
           ),
         });
       },
