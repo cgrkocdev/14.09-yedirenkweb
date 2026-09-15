@@ -26,17 +26,26 @@ Bu paket standart GoDaddy cPanel Linux Hosting, PHP 8.1+ ve MySQL/MariaDB için 
 4. Hazırladığınız gerçek `config.php` dosyasını `public_html/api/config.php` konumuna ayrıca yükleyin.
 5. cPanel > **MultiPHP Manager** bölümünde alan adını PHP 8.1 veya daha yeni sürüme alın ve SSL sertifikasını etkinleştirin.
 
-## 4. Kontrol
+## 4. Albaraka Sanal POS
+
+1. Bankanın verdiği `Merchant No`, `Terminal No`, `EPOS/Posnet ID` ve `ENC Key` değerlerini `api/config.php` içindeki `albaraka_*` alanlarına yazın.
+2. Test sırasında `epostest.albarakaturk.com.tr`, canlı geçişte `epos.albarakaturk.com.tr` adreslerini kullanın.
+3. `albaraka_return_url` değerini `https://www.yedirenkdernegi.org/api/payment/albaraka/callback` olarak tanımlayın ve aynı adresi banka işyeri paneline bildirin.
+4. Hosting sunucusunun dış IP adresini bankaya bildirerek Merchant/Terminal için servis erişim iznini açtırın. Bankanın `E172` hatası IP yetkisinin eksik olduğunu belirtir.
+5. Önce banka test kartıyla 3D doğrulama, başarısız şifre, reddedilen satış ve başarılı satış senaryolarını tamamlayın; banka onayından sonra canlı URL ve canlı anahtara geçin.
+6. `config.php` dosyasını ZIP’e veya Git’e eklemeyin. Yayın paketi mevcut sunucu ayarını korumak için bu dosyayı içermez.
+
+## 5. Kontrol
 
 - `https://alanadiniz.com` açılmalı ve sayfa yenilemeleri 404 vermemelidir.
 - `https://alanadiniz.com/api/exchange-rates` JSON döndürmelidir.
 - `/admin` üzerinden belirlediğiniz admin şifresiyle giriş yapılmalıdır.
-- Test kullanıcısı kaydı, iletişim formu ve küçük bir test dekontu denenmelidir.
+- Test kullanıcısı kaydı, iletişim formu ve banka test kartıyla küçük bir 3D Secure bağış denenmelidir.
 - `public_html/api/uploads` klasörü yazılabilir olmalıdır (genellikle 750/755); web adresinden dosya okunması 403 vermelidir.
 
 ## Notlar
 
-- Bağış sistemi şu anda kart tahsilatı yapmaz; EFT/havale talebini ve dekontu güvenli isimle kaydeder.
-- GoDaddy panelinde `file_uploads=On`, `upload_max_filesize` ve `post_max_size` en az 9M olmalıdır.
+- Kart numarası, son kullanma tarihi ve CVV veritabanına veya uygulama loglarına kaydedilmez.
+- Sonucu kesinleşmeyen banka çağrıları `review_required` durumuna alınır; aynı sipariş otomatik olarak yeniden satışa gönderilmez.
 - `config.php` dosyasını paylaşmayın ve kaynak kontrolüne eklemeyin.
 - Veritabanı ve `api/uploads` klasörü için düzenli yedek alın.

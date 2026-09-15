@@ -48,6 +48,7 @@ const initResponse = await albarakaInitializeApi(
     headers: { Origin: "https://example.org", "Content-Type": "application/json" },
     body: JSON.stringify({
       amount: 1.75, consent: true, firstName: "Test", lastName: "Donor",
+      phone: "05330000000", email: "test@example.org", description: "Test bağışı",
       campaign: "Test", items: [{ title: "Test", quantity: 1, unitPrice: 1.75 }],
       card: { holderName: "TEST DONOR", number: "5400619360964581", cvv: "056", expiry: "2001" },
     }),
@@ -66,7 +67,9 @@ await store.put(`payment-pending:${callbackOrder}`, JSON.stringify({ orderId: ca
 const callback = new URLSearchParams({ OrderId: callbackOrder, ECI: "02", CAVV: "jKOBaLBL3hQ+CREBPu1HBQQAAAA=", MdStatus: "1", MdErrorMessage: "Authenticated", MD: "0161010028947569644,0161010028947569644", SecureTransactionId: "1010028947569644", Mac: "r21kMm4nMqvJakjq47Jl+3fk2xrFPrDoTJFQGxkgkfk=" });
 const originalFetch = globalThis.fetch;
 let saleRequest;
+let saleCalls = 0;
 globalThis.fetch = async (_url, options) => {
+  saleCalls += 1;
   saleRequest = JSON.parse(options.body);
   return new Response(JSON.stringify({ ServiceResponseData: { ResponseCode: "00", ResponseDescription: "Onaylandı" }, AuthCode: "395351", ReferenceCode: "021439535190000191" }), { status: 200, headers: { "Content-Type": "application/json" } });
 };
@@ -74,4 +77,22 @@ const callbackResponse = await albarakaCallbackApi(new Request("https://example.
 globalThis.fetch = originalFetch;
 assert(callbackResponse.status === 200, "full-3d-callback");
 assert(saleRequest?.MAC === "kAKxvbwXvmrM6lapGx1UcRTs454tsSuPrBXV7oA7L7w=", "sale-request-mac");
+assert(["ApiType","ApiVersion","MerchantNo","TerminalNo","PaymentInstrumentType","CipheredData","DealerData","PaymentFacilitatorData","AdditionalInfoData","CardInformationData","IsEncrypted","IsTDSecureMerchant","IsMailOrder","IsRecurring","ThreeDSecureData","MAC","MACParams","Amount","CurrencyCode","PointAmount","OrderId","InstallmentCount","InstallmentType","KOICode","MerchantMessageData"].every((name) => Object.hasOwn(saleRequest, name)), "sale-model-fields");
 assert([...values.keys()].some((key) => key.startsWith("donation:") && key.endsWith(callbackOrder)), "paid-donation-stored");
+
+const duplicateResponse = await albarakaCallbackApi(new Request("https://example.org/api/payment/albaraka/callback", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: callback }), env);
+assert(duplicateResponse.status === 400 && saleCalls === 1, "duplicate-callback-blocked");
+
+const mismatchOrder = "ALB_TST_19091423_030";
+await store.put(`payment-pending:${mismatchOrder}`, JSON.stringify({ orderId: mismatchOrder, amount: 175, currencyCode: "TL", installmentCount: 0, createdAt: Date.now(), status: "3d_pending" }));
+const mismatch = new URLSearchParams(callback);
+mismatch.set("OrderId", mismatchOrder);
+mismatch.set("Amount", "999");
+const mismatchResponse = await albarakaCallbackApi(new Request("https://example.org/api/payment/albaraka/callback", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: mismatch }), env);
+assert(mismatchResponse.status === 400 && saleCalls === 1, "callback-order-data-mismatch-blocked");
+
+const tampered = new URLSearchParams(callback);
+tampered.set("OrderId", "ALB_TST_19091423_031");
+tampered.set("Mac", "invalid");
+const tamperedResponse = await albarakaCallbackApi(new Request("https://example.org/api/payment/albaraka/callback", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: tampered }), env);
+assert(tamperedResponse.status === 400 && saleCalls === 1, "tampered-callback-blocked");

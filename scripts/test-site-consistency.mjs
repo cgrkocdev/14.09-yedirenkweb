@@ -15,7 +15,11 @@ async function isRunning() {
 
 async function ensureServer() {
   if (await isRunning()) return;
-  server = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1"], {
+  const npmCommand = process.platform === "win32" ? "cmd.exe" : "npm";
+  const npmArgs = process.platform === "win32"
+    ? ["/d", "/s", "/c", "npm.cmd run dev -- --host 127.0.0.1"]
+    : ["run", "dev", "--", "--host", "127.0.0.1"];
+  server = spawn(npmCommand, npmArgs, {
     stdio: "ignore",
   });
   for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -192,6 +196,7 @@ try {
   if ((await interaction.getByLabel("Bağış Tutarı").inputValue()) !== "12000")
     failures.push({ interaction: "orphan-sponsorship-period" });
   await interaction.locator(".donate-now").click();
+  await interaction.locator(".cart-actions .orange").click();
   if (
     !(await interaction.locator(".summary-item b").first().textContent()).includes(
       "Yetim Hamiliği · Türkiye · Yıllık",
@@ -214,9 +219,10 @@ try {
   if ((await interaction.getByLabel("Bağış Tutarı").inputValue()) !== "1500")
     failures.push({ interaction: "orphan-clothing-price", expected: "1500" });
   await interaction.locator(".donate-now").click();
+  await interaction.locator(".cart-actions .orange").click();
   if (
     !(await interaction.locator(".summary-item b").first().textContent()).includes(
-      "Yetim Giydirme · Türkiye",
+      "Yetim Giyim · Türkiye",
     )
   )
     failures.push({ interaction: "orphan-clothing-summary-region" });
@@ -225,6 +231,7 @@ try {
   await interaction
     .getByRole("button", { name: /Zekâtımı Bağışla/ })
     .click();
+  await interaction.locator(".cart-actions .orange").click();
   if ((await interaction.locator("form.checkout-layout").count()) !== 1)
     failures.push({ interaction: "direct-checkout" });
   if ((await interaction.locator("header .basket").count()) !== 0)

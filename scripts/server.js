@@ -179,7 +179,9 @@ export async function albarakaInitializeApi(request, env) {
   const expireDate = String(card.expiry || "").replace(/\D/g, "");
   const holderName = String(card.holderName || "").trim().slice(0, 50);
   const amount = Math.round(Number(body.amount) * 100);
-  if (!/^\d{16,19}$/.test(cardNo) || !/^\d{3,4}$/.test(cvv) || !/^\d{4}$/.test(expireDate) || !holderName || !Number.isSafeInteger(amount) || amount < 1 || amount > 1_000_000_000 || body.consent !== true)
+  const expiryMonth = Number(expireDate.slice(2));
+  const donorValid = String(body.firstName || "").trim() && String(body.lastName || "").trim() && String(body.phone || "").trim() && /^\S+@\S+\.\S+$/.test(String(body.email || "").trim()) && String(body.description || "").trim() && String(body.campaign || "").trim() && Array.isArray(body.items) && body.items.length > 0;
+  if (!/^\d{16,19}$/.test(cardNo) || !/^\d{3,4}$/.test(cvv) || !/^\d{4}$/.test(expireDate) || expiryMonth < 1 || expiryMonth > 12 || !holderName || !donorValid || !Number.isSafeInteger(amount) || amount < 1 || amount > 1_000_000_000 || body.consent !== true)
     return paymentReply({ message: "Kart ve bağış bilgilerini kontrol edin." }, 400);
   const store = env.YEDIRENK_DONATIONS || env.YEDIRENK_APPLICATIONS || env.YEDIRENK_CMS;
   if (!store) return paymentReply({ message: "Ödeme kayıt servisi yapılandırılmamış." }, 503);
@@ -200,7 +202,7 @@ export async function albarakaInitializeApi(request, env) {
       PosnetID: config.posnetId, MerchantNo: config.merchantNo, TerminalNo: config.terminalNo,
       OrderId: orderId, TransactionType: "Sale", CardNo: cardNo, ExpiredDate: expireDate,
       Cvv: cvv, CardHolderName: holderName, Amount: amount, InstallmentCount: "0",
-      MerchantReturnURL: returnUrl, Language: "tr", CurrencyCode: "TL", Mac: mac,
+      MerchantReturnURL: returnUrl, Language: "TR", CurrencyCode: "TL", Mac: mac,
       MacParams: "MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount",
       UseJokerVadaa: "0", KOICode: "", OpenNewWindow: "0", UseOOS: "0",
       TxnState: "INITIAL", VftCode: "", gsmNo: "", packetCode: "",
@@ -220,6 +222,7 @@ export async function albarakaCallbackApi(request, env) {
   const config = albarakaConfig(env);
   if (!validAlbarakaConfig(config)) return paymentResultPage(false, "POS yapılandırması eksik.");
   let form;
+  if (Number(request.headers.get("content-length") || 0) > 30000) return paymentResultPage(false, "Banka yanıtı çok büyük.");
   try { form = await request.formData(); } catch { return paymentResultPage(false, "Banka yanıtı okunamadı."); }
   const orderId = callbackValue(form, "OrderId");
   const mdStatus = callbackValue(form, "MdStatus");
@@ -234,18 +237,30 @@ export async function albarakaCallbackApi(request, env) {
   if (mdStatus !== "1") return paymentResultPage(false, `3D doğrulama başarısız: ${mdError || mdStatus}`, orderId);
   const store = env.YEDIRENK_DONATIONS || env.YEDIRENK_APPLICATIONS || env.YEDIRENK_CMS;
   const pending = store && orderId ? await store.get(`payment-pending:${orderId}`, "json") : null;
-  if (!pending || Date.now() - Number(pending.createdAt) > 3600000) return paymentResultPage(false, "Sipariş bulunamadı veya süresi doldu.", orderId);
+  if (!pending || pending.status !== "3d_pending" || Date.now() - Number(pending.createdAt) > 3600000) return paymentResultPage(false, "Sipariş bulunamadı, daha önce işlendi veya süresi doldu.", orderId);
+  const returnedAmount = callbackValue(form, "Amount");
+  const returnedMerchant = callbackValue(form, "MerchantId");
+  const returnedType = callbackValue(form, "TranType");
+  if ((returnedAmount && Number(returnedAmount) !== Number(pending.amount)) || (returnedMerchant && returnedMerchant !== config.merchantNo) || (returnedType && returnedType.toLowerCase() !== "sale"))
+    return paymentResultPage(false, "Banka dönüşündeki sipariş bilgileri eşleşmiyor.", orderId);
+  await store.put(`payment-pending:${orderId}`, JSON.stringify({ ...pending, status: "processing", processingAt: Date.now() }), { expirationTtl: 3600 });
   const saleMac = await albarakaHash(`${config.merchantNo}${config.terminalNo}${secureTransactionId}${cavv}${eci}${mdStatus}${config.encKey}`);
-  const saleBody = { ApiType: "JSON", ApiVersion: "V100", MerchantNo: config.merchantNo, TerminalNo: config.terminalNo, PaymentInstrumentType: "CARD", IsEncrypted: "N", IsTDSecureMerchant: "Y", IsMailOrder: "N", ThreeDSecureData: { SecureTransactionId: secureTransactionId, CavvData: cavv, Eci: eci, MdStatus: 1, MD: md }, MAC: saleMac, MACParams: "MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus", Amount: pending.amount, CurrencyCode: pending.currencyCode, PointAmount: 0, OrderId: orderId, InstallmentCount: pending.installmentCount };
+  const saleBody = { ApiType: "JSON", ApiVersion: "V100", MerchantNo: config.merchantNo, TerminalNo: config.terminalNo, PaymentInstrumentType: "CARD", CipheredData: null, DealerData: null, PaymentFacilitatorData: null, AdditionalInfoData: null, CardInformationData: null, IsEncrypted: "N", IsTDSecureMerchant: "Y", IsMailOrder: "N", IsRecurring: null, ThreeDSecureData: { SecureTransactionId: secureTransactionId, CavvData: cavv, Eci: eci, MdStatus: 1, MD: md }, MAC: saleMac, MACParams: "MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus", Amount: pending.amount, CurrencyCode: pending.currencyCode, PointAmount: 0, OrderId: orderId, InstallmentCount: pending.installmentCount, InstallmentType: "N", KOICode: null, MerchantMessageData: null };
   let sale;
   try {
     const correlationId = `${orderId.slice(0, 19)}S`;
     const response = await fetch(`${config.serviceUrl}/Sale`, { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", Accept: "application/json", "X-MERCHANT-ID": config.merchantNo, "X-TERMINAL-ID": config.terminalNo, "X-POSNET-ID": config.posnetId, "X-CORRELATION-ID": correlationId }, body: JSON.stringify(saleBody) });
     sale = await response.json();
     if (!response.ok) throw new Error("Banka servisi yanıt vermedi.");
-  } catch { return paymentResultPage(false, "Satış işlemi banka servisinde tamamlanamadı.", orderId); }
+  } catch {
+    await store.put(`payment-review:${orderId}`, JSON.stringify({ ...pending, status: "review_required", updatedAt: Date.now() }));
+    return paymentResultPage(false, "Satış sonucu kesinleşmedi. Lütfen sipariş numarasıyla derneğe başvurun.", orderId);
+  }
   const responseCode = String(sale?.ServiceResponseData?.ResponseCode || "");
-  if (!["00", "0000"].includes(responseCode)) return paymentResultPage(false, sale?.ServiceResponseData?.ResponseDescription || `Banka hata kodu: ${responseCode}`, orderId);
+  if (!["00", "0000"].includes(responseCode)) {
+    await store.put(`payment-failed:${orderId}`, JSON.stringify({ ...pending, status: "failed", bankResponseCode: responseCode, updatedAt: Date.now() }));
+    return paymentResultPage(false, sale?.ServiceResponseData?.ResponseDescription || `Banka hata kodu: ${responseCode}`, orderId);
+  }
   await store.put(`donation:${Date.now()}:${orderId}`, JSON.stringify({ ...pending, status: "paid", paidAt: Date.now(), referenceNumber: sale.ReferenceCode || orderId, authCode: sale.AuthCode || "", bankResponseCode: responseCode }));
   await store.delete(`payment-pending:${orderId}`);
   return paymentResultPage(true, "Bağışınız güvenli şekilde alındı. Teşekkür ederiz.", orderId);
