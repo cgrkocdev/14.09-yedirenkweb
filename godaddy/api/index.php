@@ -57,13 +57,25 @@ $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = preg_replace('#^.*?/api(?=/|$)#', '', $path, 1) ?: '/';
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-if ($requestMethod !== 'GET') {
+if ($requestMethod !== 'GET' && $path !== '/payment/albaraka/callback') {
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
     $host = $_SERVER['HTTP_HOST'] ?? '';
     if ($origin !== '' && strcasecmp((string)parse_url($origin, PHP_URL_HOST), preg_replace('/:\d+$/', '', $host)) !== 0) fail('Geçersiz istek kaynağı.', 403);
 }
 
 function requireAdmin(): void { if (empty($_SESSION['admin'])) fail('Yetkisiz erişim.', 401); }
+function albarakaHash(string $value): string { return base64_encode(hash('sha256', $value, true)); }
+function albarakaConfig(array $config): array {
+    return [
+        'merchantNo'=>trim((string)($config['albaraka_merchant_no']??'')), 'terminalNo'=>trim((string)($config['albaraka_terminal_no']??'')),
+        'posnetId'=>trim((string)($config['albaraka_epos_no']??'')), 'encKey'=>trim((string)($config['albaraka_enc_key']??'')),
+        'tdsUrl'=>trim((string)($config['albaraka_tds_url']??'')), 'serviceUrl'=>rtrim(trim((string)($config['albaraka_service_url']??'')),'/'),
+        'returnUrl'=>trim((string)($config['albaraka_return_url']??'')),
+    ];
+}
+function validAlbarakaConfig(array $c): bool { return preg_match('/^\d{10}$/',$c['merchantNo'])===1 && preg_match('/^\d{8}$/',$c['terminalNo'])===1 && preg_match('/^\d{16}$/',$c['posnetId'])===1 && strlen($c['encKey'])>=8 && str_starts_with($c['tdsUrl'],'https://') && str_starts_with($c['serviceUrl'],'https://') && str_starts_with($c['returnUrl'],'https://'); }
+function ensurePaymentTable(PDO $db): void { $db->exec("CREATE TABLE IF NOT EXISTS payment_transactions (order_id VARCHAR(20) PRIMARY KEY, amount BIGINT UNSIGNED NOT NULL, payload_json MEDIUMTEXT NOT NULL, status VARCHAR(30) NOT NULL, bank_reference VARCHAR(100) NOT NULL DEFAULT '', auth_code VARCHAR(40) NOT NULL DEFAULT '', created_at_ms BIGINT UNSIGNED NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX idx_payment_created(created_at_ms)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"); }
+function paymentPage(bool $ok,string $message,string $order=''): never { http_response_code($ok?200:400); header('Content-Type: text/html; charset=utf-8');header('Cache-Control: no-store');$title=$ok?'Ödeme başarılı':'Ödeme tamamlanamadı';$color=$ok?'#079b91':'#b42318';$safe=htmlspecialchars($message,ENT_QUOTES,'UTF-8');$safeOrder=htmlspecialchars($order,ENT_QUOTES,'UTF-8');echo "<!doctype html><html lang=tr><meta charset=utf-8><meta name=viewport content=width=device-width><title>$title</title><style>body{font-family:Arial;background:#f4f8f8;color:#123d54;display:grid;place-items:center;min-height:100vh;margin:0}.box{background:white;padding:38px;border-radius:18px;box-shadow:0 12px 40px #1232;text-align:center;max-width:520px}h1{color:$color}a{display:inline-block;margin-top:18px;padding:12px 22px;background:#123d54;color:white;text-decoration:none;border-radius:9px}</style><main class=box><h1>$title</h1><p>$safe</p>".($safeOrder?"<b>Sipariş No: $safeOrder</b>":'')."<br><a href=/>Ana sayfaya dön</a></main>";exit; }
 function verifyAdminPassword(string $password, string $storedHash): bool {
     if (substr($storedHash, 0, 14) === 'pbkdf2_sha256$') {
         $parts = explode('$', $storedHash);
@@ -253,6 +265,29 @@ if ($path === '/analytics') {
     $data['_geoCountry']=$country; $data['_geoCity']=$city;
     $q=$db->prepare('INSERT INTO analytics_events (event_name,session_id,path,referrer,data_json,ip,user_agent,created_at_ms) VALUES (?,?,?,?,?,?,?,?)');
     $q->execute([$event,$sid,text($b['path'] ?? '/',300),text($b['referrer'] ?? '',500),json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),text($_SERVER['REMOTE_ADDR'] ?? 'unknown',64),text($_SERVER['HTTP_USER_AGENT'] ?? '',300),nowMs()]); respond(['ok'=>true],202);
+}
+
+if ($path === '/payment/albaraka/initialize') {
+    method('POST'); $b=bodyJson(30000); $c=albarakaConfig($config);
+    if (!validAlbarakaConfig($c)) fail('Albaraka POS bilgileri yapılandırılmamış.',503);
+    $card=is_array($b['card']??null)?$b['card']:[]; $cardNo=preg_replace('/\D/','',(string)($card['number']??'')); $cvv=preg_replace('/\D/','',(string)($card['cvv']??'')); $expiry=preg_replace('/\D/','',(string)($card['expiry']??'')); $holder=text($card['holderName']??'',50); $amount=(int)round((float)($b['amount']??0)*100);
+    if (!preg_match('/^\d{16,19}$/',$cardNo)||!preg_match('/^\d{3,4}$/',$cvv)||!preg_match('/^\d{4}$/',$expiry)||!$holder||$amount<1||$amount>1000000000||($b['consent']??false)!==true) fail('Kart ve bağış bilgilerini kontrol edin.');
+    ensurePaymentTable($db); $order='YD'.strtoupper(substr(base_convert((string)nowMs(),10,36),-9).substr(bin2hex(random_bytes(5)),0,9)); $order=substr($order,0,20);
+    $pending=['orderId'=>$order,'amount'=>$amount,'currencyCode'=>'TL','installmentCount'=>0,'donor'=>['firstName'=>text($b['firstName']??'',80),'lastName'=>text($b['lastName']??'',80),'phone'=>text($b['phone']??'',30),'email'=>text($b['email']??'',254),'city'=>text($b['city']??'',100),'district'=>text($b['district']??'',100),'description'=>text($b['description']??'',500)],'campaign'=>text($b['campaign']??'',500),'items'=>is_array($b['items']??null)?array_slice($b['items'],0,30):[],'createdAt'=>nowMs(),'status'=>'3d_pending'];
+    $q=$db->prepare('INSERT INTO payment_transactions(order_id,amount,payload_json,status,created_at_ms) VALUES(?,?,?,?,?)');$q->execute([$order,$amount,json_encode($pending,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'3d_pending',$pending['createdAt']]);
+    $mac=albarakaHash($c['merchantNo'].$c['terminalNo'].$cardNo.$cvv.$expiry.$amount.$c['encKey']);
+    respond(['orderId'=>$order,'action'=>$c['tdsUrl'],'fields'=>['PosnetID'=>$c['posnetId'],'MerchantNo'=>$c['merchantNo'],'TerminalNo'=>$c['terminalNo'],'OrderId'=>$order,'TransactionType'=>'Sale','CardNo'=>$cardNo,'ExpiredDate'=>$expiry,'Cvv'=>$cvv,'CardHolderName'=>$holder,'Amount'=>$amount,'InstallmentCount'=>'0','MerchantReturnURL'=>$c['returnUrl'],'Language'=>'tr','CurrencyCode'=>'TL','Mac'=>$mac,'MacParams'=>'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount','UseJokerVadaa'=>'0','KOICode'=>'','OpenNewWindow'=>'0','UseOOS'=>'0','TxnState'=>'INITIAL','VftCode'=>'','gsmNo'=>'','packetCode'=>'']]);
+}
+
+if ($path === '/payment/albaraka/callback') {
+    method('POST');$c=albarakaConfig($config);if(!validAlbarakaConfig($c))paymentPage(false,'POS yapılandırması eksik.');
+    $get=static function(string $name):string{foreach($_POST as $k=>$v)if(strcasecmp((string)$k,$name)===0)return is_scalar($v)?(string)$v:'';return '';};
+    $order=text($get('OrderId'),20);$mdStatus=$get('MdStatus');$eci=$get('ECI');$cavv=$get('CAVV');$mdError=$get('MdErrorMessage');$md=$get('MD');$secureId=$get('SecureTransactionId');$receivedMac=$get('Mac');
+    $verification=albarakaHash($eci.$cavv.$mdStatus.$mdError.$md.$secureId.$c['encKey']);if(!$receivedMac||!hash_equals($verification,$receivedMac))paymentPage(false,'Banka yanıtı doğrulanamadı.',$order);if($mdStatus!=='1')paymentPage(false,'3D doğrulama başarısız: '.($mdError?:$mdStatus),$order);
+    ensurePaymentTable($db);$q=$db->prepare("SELECT * FROM payment_transactions WHERE order_id=? AND status='3d_pending' LIMIT 1");$q->execute([$order]);$row=$q->fetch();if(!$row||nowMs()-(int)$row['created_at_ms']>3600000)paymentPage(false,'Sipariş bulunamadı veya süresi doldu.',$order);$pending=json_decode($row['payload_json'],true);
+    $saleMac=albarakaHash($c['merchantNo'].$c['terminalNo'].$secureId.$cavv.$eci.$mdStatus.$c['encKey']);$sale=['ApiType'=>'JSON','ApiVersion'=>'V100','MerchantNo'=>$c['merchantNo'],'TerminalNo'=>$c['terminalNo'],'PaymentInstrumentType'=>'CARD','IsEncrypted'=>'N','IsTDSecureMerchant'=>'Y','IsMailOrder'=>'N','ThreeDSecureData'=>['SecureTransactionId'=>$secureId,'CavvData'=>$cavv,'Eci'=>$eci,'MdStatus'=>1,'MD'=>$md],'MAC'=>$saleMac,'MACParams'=>'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus','Amount'=>(int)$row['amount'],'CurrencyCode'=>'TL','PointAmount'=>0,'OrderId'=>$order,'InstallmentCount'=>0];
+    $curl=curl_init($c['serviceUrl'].'/Sale');curl_setopt_array($curl,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode($sale),CURLOPT_CONNECTTIMEOUT=>8,CURLOPT_TIMEOUT=>25,CURLOPT_HTTPHEADER=>['Content-Type: application/json; charset=UTF-8','Accept: application/json','X-MERCHANT-ID: '.$c['merchantNo'],'X-TERMINAL-ID: '.$c['terminalNo'],'X-POSNET-ID: '.$c['posnetId'],'X-CORRELATION-ID: '.substr($order.'S',0,20)]]);$raw=curl_exec($curl);$status=(int)curl_getinfo($curl,CURLINFO_RESPONSE_CODE);curl_close($curl);$result=json_decode((string)$raw,true);if($status<200||$status>=300||!is_array($result))paymentPage(false,'Satış işlemi banka servisinde tamamlanamadı.',$order);$code=(string)($result['ServiceResponseData']['ResponseCode']??'');if(!in_array($code,['00','0000'],true))paymentPage(false,(string)($result['ServiceResponseData']['ResponseDescription']??('Banka hata kodu: '.$code)),$order);
+    $db->prepare("UPDATE payment_transactions SET status='paid',bank_reference=?,auth_code=? WHERE order_id=?")->execute([text($result['ReferenceCode']??$order,100),text($result['AuthCode']??'',40),$order]);paymentPage(true,'Bağışınız güvenli şekilde alındı. Teşekkür ederiz.',$order);
 }
 
 if ($path === '/public/online-donations') {

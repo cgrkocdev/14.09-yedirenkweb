@@ -60,3 +60,16 @@ CREATE TABLE IF NOT EXISTS analytics_geo_cache (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_geo_updated (updated_at_ms)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS payment_transactions (
+  order_id VARCHAR(20) PRIMARY KEY,
+  amount BIGINT UNSIGNED NOT NULL,
+  payload_json MEDIUMTEXT NOT NULL,
+  status VARCHAR(30) NOT NULL,
+  bank_reference VARCHAR(100) NOT NULL DEFAULT '',
+  auth_code VARCHAR(40) NOT NULL DEFAULT '',
+  created_at_ms BIGINT UNSIGNED NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_payment_created (created_at_ms),
+  INDEX idx_payment_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

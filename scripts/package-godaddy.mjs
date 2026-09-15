@@ -11,6 +11,8 @@ async function removeAppleDouble(directory) {
 await mkdir("dist", { recursive: true });
 await rm("dist/api", { recursive: true, force: true });
 await cp("godaddy/api", "dist/api", { recursive: true });
+// Hosting secrets remain on the server and must never be included in a release archive.
+await rm("dist/api/config.php", { force: true });
 await cp("godaddy/.htaccess", "dist/.htaccess");
 await mkdir("dist/database", { recursive: true });
 await cp("database/yedirenk_godaddy.sql", "dist/database/yedirenk_godaddy.sql");

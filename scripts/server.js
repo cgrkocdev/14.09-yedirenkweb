@@ -109,6 +109,10 @@ export default {
       return applicationIngest(request, env);
     if (url.pathname === "/api/public/online-donations")
       return donationRequestApi(request, env);
+    if (url.pathname === "/api/payment/albaraka/initialize")
+      return albarakaInitializeApi(request, env);
+    if (url.pathname === "/api/payment/albaraka/callback")
+      return albarakaCallbackApi(request, env);
     if (url.pathname === "/api/public/content")
       return publicContentApi(request, env);
     if (url.pathname.startsWith("/api/account/"))
@@ -126,6 +130,126 @@ export default {
     return secure(response);
   },
 };
+
+export async function albarakaHash(value) {
+  const bytes = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(String(value)),
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)));
+}
+
+const albarakaConfig = (env) => ({
+  merchantNo: String(env.ALBARAKA_MERCHANT_NO || "").trim(),
+  terminalNo: String(env.ALBARAKA_TERMINAL_NO || "").trim(),
+  posnetId: String(env.ALBARAKA_EPOS_NO || "").trim(),
+  encKey: String(env.ALBARAKA_ENC_KEY || "").trim(),
+  tdsUrl: String(env.ALBARAKA_TDS_URL || "https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx").trim(),
+  serviceUrl: String(env.ALBARAKA_SERVICE_URL || "https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc").replace(/\/$/, ""),
+  returnUrl: String(env.ALBARAKA_RETURN_URL || "").trim(),
+});
+
+const validAlbarakaConfig = (config) =>
+  /^\d{10}$/.test(config.merchantNo) &&
+  /^\d{8}$/.test(config.terminalNo) &&
+  /^\d{16}$/.test(config.posnetId) &&
+  config.encKey.length >= 8 &&
+  /^https:\/\//i.test(config.tdsUrl) &&
+  /^https:\/\//i.test(config.serviceUrl);
+
+const paymentReply = (body, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },
+  });
+
+export async function albarakaInitializeApi(request, env) {
+  if (request.method !== "POST") return paymentReply({ message: "Yöntem desteklenmiyor." }, 405);
+  if (!sameOrigin(request)) return paymentReply({ message: "Geçersiz kaynak." }, 403);
+  if (Number(request.headers.get("content-length") || 0) > 30000)
+    return paymentReply({ message: "İstek çok büyük." }, 413);
+  const config = albarakaConfig(env);
+  if (!validAlbarakaConfig(config))
+    return paymentReply({ message: "Albaraka POS bilgileri yapılandırılmamış." }, 503);
+  let body;
+  try { body = await request.json(); } catch { return paymentReply({ message: "Ödeme bilgileri okunamadı." }, 400); }
+  const card = body.card || {};
+  const cardNo = String(card.number || "").replace(/\D/g, "");
+  const cvv = String(card.cvv || "").replace(/\D/g, "");
+  const expireDate = String(card.expiry || "").replace(/\D/g, "");
+  const holderName = String(card.holderName || "").trim().slice(0, 50);
+  const amount = Math.round(Number(body.amount) * 100);
+  if (!/^\d{16,19}$/.test(cardNo) || !/^\d{3,4}$/.test(cvv) || !/^\d{4}$/.test(expireDate) || !holderName || !Number.isSafeInteger(amount) || amount < 1 || amount > 1_000_000_000 || body.consent !== true)
+    return paymentReply({ message: "Kart ve bağış bilgilerini kontrol edin." }, 400);
+  const store = env.YEDIRENK_DONATIONS || env.YEDIRENK_APPLICATIONS || env.YEDIRENK_CMS;
+  if (!store) return paymentReply({ message: "Ödeme kayıt servisi yapılandırılmamış." }, 503);
+  const orderId = `YD${Date.now().toString(36).toUpperCase().padStart(9, "0").slice(-9)}${crypto.randomUUID().replaceAll("-", "").slice(0, 9).toUpperCase()}`;
+  const origin = new URL(request.url).origin;
+  const returnUrl = config.returnUrl || `${origin}/api/payment/albaraka/callback`;
+  if (!/^https:\/\//i.test(returnUrl)) return paymentReply({ message: "Banka dönüş adresi HTTPS olmalıdır." }, 503);
+  const mac = await albarakaHash(`${config.merchantNo}${config.terminalNo}${cardNo}${cvv}${expireDate}${amount}${config.encKey}`);
+  const pending = {
+    orderId, amount, currencyCode: "TL", installmentCount: 0,
+    donor: { firstName: String(body.firstName || "").slice(0, 80), lastName: String(body.lastName || "").slice(0, 80), phone: String(body.phone || "").slice(0, 30), email: String(body.email || "").slice(0, 254), city: String(body.city || "").slice(0, 100), district: String(body.district || "").slice(0, 100), description: String(body.description || "").slice(0, 500) },
+    campaign: String(body.campaign || "").slice(0, 500), items: Array.isArray(body.items) ? body.items.slice(0, 30) : [], createdAt: Date.now(), status: "3d_pending",
+  };
+  await store.put(`payment-pending:${orderId}`, JSON.stringify(pending), { expirationTtl: 3600 });
+  return paymentReply({
+    orderId, action: config.tdsUrl,
+    fields: {
+      PosnetID: config.posnetId, MerchantNo: config.merchantNo, TerminalNo: config.terminalNo,
+      OrderId: orderId, TransactionType: "Sale", CardNo: cardNo, ExpiredDate: expireDate,
+      Cvv: cvv, CardHolderName: holderName, Amount: amount, InstallmentCount: "0",
+      MerchantReturnURL: returnUrl, Language: "tr", CurrencyCode: "TL", Mac: mac,
+      MacParams: "MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount",
+      UseJokerVadaa: "0", KOICode: "", OpenNewWindow: "0", UseOOS: "0",
+      TxnState: "INITIAL", VftCode: "", gsmNo: "", packetCode: "",
+    },
+  });
+}
+
+const callbackValue = (form, name) => {
+  const key = [...form.keys()].find((item) => item.toLowerCase() === name.toLowerCase());
+  return key ? String(form.get(key) || "") : "";
+};
+
+const paymentResultPage = (ok, message, orderId = "") => new Response(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Ödeme Sonucu</title><style>body{font-family:Arial;background:#f4f8f8;color:#123d54;display:grid;place-items:center;min-height:100vh;margin:0}.box{background:#fff;padding:38px;border-radius:18px;box-shadow:0 12px 40px #1232;text-align:center;max-width:520px}h1{color:${ok ? "#079b91" : "#b42318"}}a{display:inline-block;margin-top:18px;padding:12px 22px;background:#123d54;color:#fff;text-decoration:none;border-radius:9px}</style></head><body><main class="box"><h1>${ok ? "Ödeme başarılı" : "Ödeme tamamlanamadı"}</h1><p>${String(message).replace(/[<>&"]/g, "")}</p>${orderId ? `<b>Sipariş No: ${orderId}</b>` : ""}<br><a href="/">Ana sayfaya dön</a></main></body></html>`, { status: ok ? 200 : 400, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+
+export async function albarakaCallbackApi(request, env) {
+  if (request.method !== "POST") return paymentResultPage(false, "Geçersiz dönüş yöntemi.");
+  const config = albarakaConfig(env);
+  if (!validAlbarakaConfig(config)) return paymentResultPage(false, "POS yapılandırması eksik.");
+  let form;
+  try { form = await request.formData(); } catch { return paymentResultPage(false, "Banka yanıtı okunamadı."); }
+  const orderId = callbackValue(form, "OrderId");
+  const mdStatus = callbackValue(form, "MdStatus");
+  const eci = callbackValue(form, "ECI");
+  const cavv = callbackValue(form, "CAVV");
+  const mdError = callbackValue(form, "MdErrorMessage");
+  const md = callbackValue(form, "MD");
+  const secureTransactionId = callbackValue(form, "SecureTransactionId");
+  const receivedMac = callbackValue(form, "Mac");
+  const verificationMac = await albarakaHash(`${eci}${cavv}${mdStatus}${mdError}${md}${secureTransactionId}${config.encKey}`);
+  if (!receivedMac || !(await secureEqual(receivedMac, verificationMac))) return paymentResultPage(false, "Banka yanıtı doğrulanamadı.", orderId);
+  if (mdStatus !== "1") return paymentResultPage(false, `3D doğrulama başarısız: ${mdError || mdStatus}`, orderId);
+  const store = env.YEDIRENK_DONATIONS || env.YEDIRENK_APPLICATIONS || env.YEDIRENK_CMS;
+  const pending = store && orderId ? await store.get(`payment-pending:${orderId}`, "json") : null;
+  if (!pending || Date.now() - Number(pending.createdAt) > 3600000) return paymentResultPage(false, "Sipariş bulunamadı veya süresi doldu.", orderId);
+  const saleMac = await albarakaHash(`${config.merchantNo}${config.terminalNo}${secureTransactionId}${cavv}${eci}${mdStatus}${config.encKey}`);
+  const saleBody = { ApiType: "JSON", ApiVersion: "V100", MerchantNo: config.merchantNo, TerminalNo: config.terminalNo, PaymentInstrumentType: "CARD", IsEncrypted: "N", IsTDSecureMerchant: "Y", IsMailOrder: "N", ThreeDSecureData: { SecureTransactionId: secureTransactionId, CavvData: cavv, Eci: eci, MdStatus: 1, MD: md }, MAC: saleMac, MACParams: "MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus", Amount: pending.amount, CurrencyCode: pending.currencyCode, PointAmount: 0, OrderId: orderId, InstallmentCount: pending.installmentCount };
+  let sale;
+  try {
+    const correlationId = `${orderId.slice(0, 19)}S`;
+    const response = await fetch(`${config.serviceUrl}/Sale`, { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", Accept: "application/json", "X-MERCHANT-ID": config.merchantNo, "X-TERMINAL-ID": config.terminalNo, "X-POSNET-ID": config.posnetId, "X-CORRELATION-ID": correlationId }, body: JSON.stringify(saleBody) });
+    sale = await response.json();
+    if (!response.ok) throw new Error("Banka servisi yanıt vermedi.");
+  } catch { return paymentResultPage(false, "Satış işlemi banka servisinde tamamlanamadı.", orderId); }
+  const responseCode = String(sale?.ServiceResponseData?.ResponseCode || "");
+  if (!["00", "0000"].includes(responseCode)) return paymentResultPage(false, sale?.ServiceResponseData?.ResponseDescription || `Banka hata kodu: ${responseCode}`, orderId);
+  await store.put(`donation:${Date.now()}:${orderId}`, JSON.stringify({ ...pending, status: "paid", paidAt: Date.now(), referenceNumber: sale.ReferenceCode || orderId, authCode: sale.AuthCode || "", bankResponseCode: responseCode }));
+  await store.delete(`payment-pending:${orderId}`);
+  return paymentResultPage(true, "Bağışınız güvenli şekilde alındı. Teşekkür ederiz.", orderId);
+}
 
 async function publicContentApi(request, env) {
   const headers = {
@@ -877,7 +1001,7 @@ function secure(response) {
   const r = new Response(response.body, response);
   r.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self' https://epostest.albarakaturk.com.tr https://epos.albarakaturk.com.tr; frame-ancestors 'none'; upgrade-insecure-requests",
   );
   r.headers.set(
     "Strict-Transport-Security",

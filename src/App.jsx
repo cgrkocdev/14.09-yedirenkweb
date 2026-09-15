@@ -9878,6 +9878,7 @@ const panelDonationCodes = {
   "gida-kolisi": ["GIDA_KOLISI", "GIDA_KOLISI_STANDART"],
   "toplu-yemek": ["TOPLU_YEMEK", "TOPLU_YEMEK_STANDART"],
   "gazze-yardim": ["GAZZE_YARDIM", "GAZZE_YARDIM_STANDART"],
+  "turkiye-projeleri": ["TURKIYE_PROJELERI", "TURKIYE_PROJELERI_STANDART"],
   "yetim-giydirme": ["YETIM_GIYDIRME", "YETIM_GIYDIRME_STANDART"],
   "yetim-hamiligi": ["YETIM_HAMILIGI", "YETIM_HAMILIGI_STANDART"],
   zekat: ["ZEKAT", "ZEKAT_STANDART"],
@@ -9901,90 +9902,38 @@ function panelDonationItem(item) {
   };
 }
 
-function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
+function Cart({ items, setItems, onClose, onNavigate }) {
   const total = items.reduce(
       (n, x) => n + toTRY(x.price * x.qty, x.currency || "TRY"),
       0,
     ),
     totalLabel = money(total, "TRY");
-  const qurbaniItem = items.find((item) =>
-      item.slug.startsWith("adak-akika-nafile-kurban"),
-    ),
-    qurbaniCountry = qurbaniItem?.title.split("·").at(-1)?.trim(),
-    descriptionPlaceholder = qurbaniItem
-      ? `Kurban türünü (Adak, Akika veya Nafile) ve gönderilmesini istediğiniz ülkeyi belirtin. Örn: Akika — ${qurbaniCountry || "Yemen"}`
-      : "Bağışınızla ilgili açıklamanızı yazın";
-  const [checkout] = useState(true),
+  const [checkout, setCheckout] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState(""),
     [receipt, setReceipt] = useState(""),
-    [receiptFile, setReceiptFile] = useState(null),
-    [selectedAccountCode, setSelectedAccountCode] = useState("TRY"),
-    [copiedIban, setCopiedIban] = useState(""),
-    [copiedOwner, setCopiedOwner] = useState(false),
-    [copiedAccountNumber, setCopiedAccountNumber] = useState(false),
     [kvkkOpen, setKvkkOpen] = useState(false);
-  const selectedAccount =
-    bankAccounts.find((account) => account.code === selectedAccountCode) ||
-    bankAccounts[0];
-  const transferAmount = total / (exchangeRates[selectedAccount.code] || 1);
-  const transferAmountLabel = money(transferAmount, selectedAccount.code);
-  const transferDescription = `${items[0]?.title || "Bağış"} - Adınız Soyadınız - Telefon Numaranız`;
-  const copyTransferIban = async () => {
-    const compactIban = selectedAccount.iban.replace(/\s/g, "");
-    try {
-      await navigator.clipboard?.writeText(compactIban);
-    } catch {
-      const fallback = document.createElement("textarea");
-      fallback.value = compactIban;
-      fallback.style.position = "fixed";
-      fallback.style.opacity = "0";
-      document.body.appendChild(fallback);
-      fallback.select();
-      document.execCommand("copy");
-      fallback.remove();
-    }
-    setCopiedIban(selectedAccount.code);
-    setTimeout(() => setCopiedIban(""), 1800);
-  };
-  const copyTransferOwner = async () => {
-    try {
-      await navigator.clipboard?.writeText(selectedAccount.owner);
-    } catch {
-      const fallback = document.createElement("textarea");
-      fallback.value = selectedAccount.owner;
-      fallback.style.position = "fixed";
-      fallback.style.opacity = "0";
-      document.body.appendChild(fallback);
-      fallback.select();
-      document.execCommand("copy");
-      fallback.remove();
-    }
-    setCopiedOwner(true);
-    setTimeout(() => setCopiedOwner(false), 1800);
-  };
-  const copyTransferAccountNumber = async () => {
-    try {
-      await navigator.clipboard?.writeText(selectedAccount.accountNumber);
-    } catch {
-      const fallback = document.createElement("textarea");
-      fallback.value = selectedAccount.accountNumber;
-      fallback.style.position = "fixed";
-      fallback.style.opacity = "0";
-      document.body.appendChild(fallback);
-      fallback.select();
-      document.execCommand("copy");
-      fallback.remove();
-    }
-    setCopiedAccountNumber(true);
-    setTimeout(() => setCopiedAccountNumber(false), 1800);
-  };
+  useEffect(() => {
+    if (checkout)
+      track("checkout_start", {
+        amount: total,
+        campaigns: items.map((x) => x.slug),
+      });
+  }, [checkout]);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
     description: "",
+    country: "Türkiye",
+    city: "",
+    district: "",
+    cardName: "",
+    cardNumber: "",
+    expiryMonth: "",
+    expiryYear: "",
+    cvv: "",
     consent: false,
     website: "",
   });
@@ -10069,77 +10018,88 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
     try {
       if (!Number.isFinite(total) || total < 1 || total > 10000000)
         throw new Error("Bağış tutarı geçerli değil.");
+      if (!form.city || !form.district)
+        throw new Error(
+          "Ödemeyi tamamlamak için il ve ilçe seçimi zorunludur.",
+        );
       if (!form.description.trim())
         throw new Error("Açıklama alanı zorunludur.");
-      if (!receiptFile)
-        throw new Error("Bağışı tamamlamak için dekont yüklemelisiniz.");
-      if (receiptFile.size > 8 * 1024 * 1024)
-        throw new Error("Dekont dosyası en fazla 8 MB olabilir.");
+      const cardNumber = form.cardNumber.replace(/\D/g, "");
+      if (!/^\d{16,19}$/.test(cardNumber) || !/^\d{3,4}$/.test(form.cvv))
+        throw new Error("Kart bilgilerini kontrol edin.");
       if (
         form.firstName.length > 80 ||
         form.lastName.length > 80 ||
         form.email.length > 254 ||
         form.phone.length > 30 ||
+        form.city.length > 100 ||
         form.description.length > 500
       )
         throw new Error("Girilen bilgiler izin verilen uzunluğu aşıyor.");
-      const configuredBase = (
+      const base = (
         import.meta.env.VITE_PANEL_API_URL ||
         import.meta.env.VITE_VEFA_API_URL ||
         ""
       ).replace(/\/$/, "");
       if (
-        configuredBase &&
-        !/^https:\/\//i.test(configuredBase) &&
-        !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configuredBase)
+        !/^https:\/\//i.test(base) &&
+        !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(base)
       )
         throw new Error("Güvenli ödeme bağlantısı yapılandırılmamış.");
-      const endpoint = `${configuredBase}/api/public/online-donations`;
-      const donationPayload = {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        phone: form.phone.trim(),
-        email: form.email.trim(),
-        description: form.description.trim(),
-        amount: total,
-        paymentMethod: "EFT_HAVALE",
-        bankAccountCode: selectedAccount.code,
-        bankAccountIban: selectedAccount.iban.replace(/\s/g, ""),
-        transferAmount,
-        campaign: items
-          .map((item) => `${item.title} (${item.qty} adet)`)
-          .join(", ")
-          .slice(0, 500),
-        items: items.map(panelDonationItem),
-        consent: form.consent,
-        website: form.website,
-      };
-      const requestBody = new FormData();
-      requestBody.append("payload", JSON.stringify(donationPayload));
-      requestBody.append("receipt", receiptFile, receiptFile.name);
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${base}/api/payment/albaraka/initialize`, {
         method: "POST",
         signal: AbortSignal.timeout(15000),
-        headers: { Accept: "application/json" },
-        body: requestBody,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          description: form.description.trim(),
+          city: form.city.trim(),
+          district: form.district.trim(),
+          amount: total,
+          items: items.map(panelDonationItem),
+          campaign: items
+            .map((item) => `${item.title} (${item.qty} adet)`)
+            .join(", ")
+            .slice(0, 500),
+          consent: form.consent,
+          website: form.website,
+          card: {
+            holderName: form.cardName.trim(),
+            number: cardNumber,
+            expiry: `${form.expiryYear.slice(-2)}${form.expiryMonth}`,
+            cvv: form.cvv,
+          },
+        }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "Ödeme tamamlanamadı.");
-      track("donation_success", {
+      if (!data.action || !data.fields) throw new Error("Banka yönlendirmesi hazırlanamadı.");
+      sessionStorage.setItem("yedirenk-pending-donation", JSON.stringify({
+        orderId: data.orderId,
         amount: total,
-        campaigns: items.map((x) => x.slug),
-        reference: String(data.referenceNumber || "").slice(0, 80),
+        campaigns: items.map((item) => item.slug),
+      }));
+      const bankForm = document.createElement("form");
+      bankForm.method = "POST";
+      bankForm.action = data.action;
+      Object.entries(data.fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = String(value ?? "");
+        bankForm.appendChild(input);
       });
-      recordFundingDonations(items);
-      setReceipt(data.referenceNumber);
-      setItems([]);
+      document.body.appendChild(bankForm);
+      bankForm.submit();
     } catch (reason) {
       setError(
-        reason instanceof TypeError
-          ? "Bağış servisine ulaşılamadı. Lütfen bağlantınızı kontrol edip tekrar deneyin."
-          : reason instanceof Error
-            ? reason.message
-            : "Ödeme tamamlanamadı.",
+        reason instanceof Error ? reason.message : "Ödeme tamamlanamadı.",
       );
     } finally {
       setLoading(false);
@@ -10154,16 +10114,6 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
             <span>{checkout ? "GÜVENLİ BAĞIŞ" : "BAĞIŞ SEPETİ"}</span>
             <h3>{checkout ? "Ödeme" : "Bağışların"}</h3>
           </div>
-          {checkout && (
-            <nav className="payment-return-actions" aria-label="Ödeme gezinme">
-              <button type="button" onClick={onClose}>
-                <ChevronLeft /> Geri Dön
-              </button>
-              <Link to="/" onClick={onNavigate}>
-                <House /> Ana Sayfa
-              </Link>
-            </nav>
-          )}
           <button aria-label="Kapat" onClick={onClose}>
             <X />
           </button>
@@ -10171,131 +10121,134 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
         {receipt ? (
           <div className="payment-success">
             <BadgeCheck />
-            <span>DEKONTUNUZ ALINDI</span>
+            <span>ÖDEME BAŞARILI</span>
             <h3>Bağışınız için teşekkür ederiz.</h3>
             <p>
-              EFT/Havale bildiriminiz kaydedildi. Dekontunuz kontrol edildikten
-              sonra bağışınız onaylanacaktır.
+              Kart ödemeniz Albaraka Türk 3D Secure ile başarıyla tamamlandı.
             </p>
+            <b>Makbuz No: {receipt}</b>
             <button className="btn navy" onClick={onClose}>
               Tamam
             </button>
           </div>
         ) : checkout ? (
           <>
-            <div className="checkout-layout checkout-layout-simple">
+            <div className="checkout-steps">
+              <span className="done">
+                <b>1</b> Sepet
+              </span>
+              <i />
+              <span className="active">
+                <b>2</b> Ödeme
+              </span>
+              <i />
+              <span>
+                <b>3</b> Sonuç
+              </span>
+            </div>
+            <form className="checkout-layout" onSubmit={pay}>
               <div className="checkout-main">
-                <p className="eft-only-notice">
-                  <strong aria-hidden="true">!</strong>
-                  Bağışınızı EFT/Havale ile yapabilirsiniz. Kredi kartıyla ödeme
-                  seçeneğimiz yakında hizmetinizde olacaktır.
-                </p>
-                <section className="checkout-card eft-payment-card">
-                  <h4>Ödeme Yöntemi</h4>
-                  <div className="eft-method-selected">
-                    <Landmark />
+                <section className="member-callout">
+                  <div>
+                    <b>Üye misiniz?</b>
                     <span>
-                      <b>EFT / Havale</b>
-                      <small>
-                        Banka hesabımıza EFT veya havale yaparak bağışınızı
-                        tamamlayın.
-                      </small>
+                      Giriş yaparak bilgilerinizi otomatik doldurun ve önceki
+                      bağışlarınızı takip edin.
                     </span>
-                    <Check />
                   </div>
-                  <h5>Banka Hesap Bilgileri</h5>
-                  <div
-                    className="eft-currency-tabs"
-                    role="tablist"
-                    aria-label="Hesap para birimi"
-                  >
-                    {bankAccounts.map((account) => (
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={selectedAccount.code === account.code}
-                        className={
-                          selectedAccount.code === account.code ? "active" : ""
-                        }
-                        key={account.code}
-                        onClick={() => setSelectedAccountCode(account.code)}
-                      >
-                        <b>{account.code}</b>
-                        <span>{account.currency}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="eft-account-panel">
-                    <div className="eft-bank-title">
-                      <Landmark />
-                      <span>
-                        <b>{selectedAccount.bank}</b>
-                        <small>{selectedAccount.currency} hesabı</small>
-                      </span>
-                    </div>
-                    <dl>
-                      <div>
-                        <dt>Hesap Sahibi</dt>
-                        <dd>
-                          <b>{selectedAccount.owner}</b>
-                          <button type="button" onClick={copyTransferOwner}>
-                            {copiedOwner ? <Check /> : <Copy />}
-                            {copiedOwner ? "Kopyalandı" : "Kopyala"}
-                          </button>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>IBAN</dt>
-                        <dd>
-                          <b>{selectedAccount.iban}</b>
-                          <button type="button" onClick={copyTransferIban}>
-                            {copiedIban === selectedAccount.code ? (
-                              <Check />
-                            ) : (
-                              <Copy />
-                            )}
-                            {copiedIban === selectedAccount.code
-                              ? "Kopyalandı"
-                              : "Kopyala"}
-                          </button>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Şube</dt>
-                        <dd>{selectedAccount.branch}</dd>
-                      </div>
-                      <div>
-                        <dt>Hesap Numarası</dt>
-                        <dd>
-                          <b>{selectedAccount.accountNumber}</b>
-                          <button
-                            type="button"
-                            onClick={copyTransferAccountNumber}
-                          >
-                            {copiedAccountNumber ? <Check /> : <Copy />}
-                            {copiedAccountNumber ? "Kopyalandı" : "Kopyala"}
-                          </button>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Gönderilecek Tutar</dt>
-                        <dd>
-                          <strong>{transferAmountLabel}</strong>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Açıklama Örneği</dt>
-                        <dd>{transferDescription}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                  <p className="eft-reminder">
-                    <strong aria-hidden="true">!</strong>
-                    EFT/Havale açıklamasına bağış türünü, adınızı, soyadınızı ve
-                    telefon numaranızı yazmayı unutmayın.
-                  </p>
+                  <Link to="/giris" onClick={onClose}>
+                    Giriş Yap
+                  </Link>
                 </section>
-                {false && <section className="checkout-card personal-card">
+                {error && <p className="payment-error">{error}</p>}
+                <section className="checkout-card">
+                  <h4>Ödeme</h4>
+                  <label>
+                    Kart üzerindeki ad
+                    <input
+                      required
+                      autoComplete="cc-name"
+                      placeholder="AD SOYAD"
+                      value={form.cardName}
+                      onChange={(e) => update("cardName", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Kart numarası
+                    <div className="card-input">
+                      <CreditCard />
+                      <input
+                        required
+                        autoComplete="cc-number"
+                        inputMode="numeric"
+                        pattern="[0-9 ]{16,19}"
+                        maxLength="19"
+                        placeholder="0000 0000 0000 0000"
+                        value={form.cardNumber}
+                        onChange={(e) =>
+                          update(
+                            "cardNumber",
+                            e.target.value.replace(/[^0-9 ]/g, ""),
+                          )
+                        }
+                      />
+                    </div>
+                  </label>
+                  <div className="card-date-grid">
+                    <label>
+                      Ay
+                      <select
+                        required
+                        autoComplete="cc-exp-month"
+                        value={form.expiryMonth}
+                        onChange={(e) => update("expiryMonth", e.target.value)}
+                      >
+                        <option value="">Ay</option>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <option
+                            key={i + 1}
+                            value={String(i + 1).padStart(2, "0")}
+                          >
+                            {String(i + 1).padStart(2, "0")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Yıl
+                      <select
+                        required
+                        autoComplete="cc-exp-year"
+                        value={form.expiryYear}
+                        onChange={(e) => update("expiryYear", e.target.value)}
+                      >
+                        <option value="">Yıl</option>
+                        {Array.from(
+                          { length: 12 },
+                          (_, i) => new Date().getFullYear() + i,
+                        ).map((y) => (
+                          <option key={y}>{y}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      CVV
+                      <input
+                        required
+                        autoComplete="cc-csc"
+                        inputMode="numeric"
+                        pattern="[0-9]{3}"
+                        maxLength="3"
+                        placeholder="***"
+                        value={form.cvv}
+                        onChange={(e) =>
+                          update("cvv", e.target.value.replace(/\D/g, ""))
+                        }
+                      />
+                    </label>
+                  </div>
+                </section>
+                <section className="checkout-card personal-card">
                   <h4>Kişisel Bilgiler</h4>
                   <div className="payment-grid">
                     <label>
@@ -10344,37 +10297,55 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
                       required
                       maxLength="500"
                       rows="4"
-                      placeholder={descriptionPlaceholder}
+                      placeholder="Bağışınızla ilgili açıklamanızı yazın"
                       value={form.description}
                       onChange={(e) => update("description", e.target.value)}
                     />
                   </label>
-                  <div className="receipt-upload-field">
-                    <span>Dekont Yükle <em>*</em></span>
-                    <label>
-                      <FileText />
-                      <span>
-                        <b>
-                          {receiptFile
-                            ? receiptFile.name
-                            : "Dekont dosyanızı seçin"}
-                        </b>
-                        <small>PDF, JPG veya PNG · En fazla 8 MB</small>
-                      </span>
-                      <input
-                        required
-                        type="file"
-                        accept="application/pdf,image/jpeg,image/png"
-                        onChange={(event) =>
-                          setReceiptFile(event.target.files?.[0] || null)
-                        }
-                      />
-                    </label>
+                  <div className="location-warning">
+                    Ödemeyi tamamlamak için il ve ilçe seçimi zorunludur.
                   </div>
-                  <div className="receipt-info-note">
-                    <BadgeCheck />
-                    Ödemenizi yaptıktan sonra dekontunuzu yükleyerek bağışınızı
-                    tamamlayabilirsiniz.
+                  <div className="location-grid">
+                    <label>
+                      Ülke
+                      <select
+                        required
+                        value={form.country}
+                        onChange={(e) => update("country", e.target.value)}
+                      >
+                        <option>Türkiye</option>
+                      </select>
+                    </label>
+                    <label>
+                      Şehir
+                      <select
+                        required
+                        value={form.city}
+                        onChange={(e) => {
+                          update("city", e.target.value);
+                          update("district", "");
+                        }}
+                      >
+                        <option value="">Lütfen Seçiniz</option>
+                        {Object.keys(districts).map((x) => (
+                          <option key={x}>{x}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      İlçe
+                      <select
+                        required
+                        disabled={!form.city}
+                        value={form.district}
+                        onChange={(e) => update("district", e.target.value)}
+                      >
+                        <option value="">Lütfen Seçiniz</option>
+                        {(districts[form.city] || []).map((x) => (
+                          <option key={x}>{x}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                   <input
                     className="payment-honeypot"
@@ -10443,15 +10414,15 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
                           kapsamındaki diğer haklarınıza ilişkin taleplerinizi
                           derneğin iletişim kanallarından iletebilirsiniz.
                         </p>
-                        <Link to="/kurumsal/kvkk" replace onClick={onNavigate}>
+                        <Link to="/kurumsal/bilgi-guvenligi" onClick={onClose}>
                           Ayrıntılı bilgi sayfasını aç <ArrowRight />
                         </Link>
                       </div>
                     )}
                   </div>
-                </section>}
+                </section>
               </div>
-              {false && <aside className="checkout-summary">
+              <aside className="checkout-summary">
                 <h4>Bağış Özeti</h4>
                 {items.map((item) => (
                   <div className="summary-item" key={item.slug}>
@@ -10459,53 +10430,20 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
                       <b>{item.title}</b>
                       <small>{item.qty} adet</small>
                     </span>
-                    <div className="summary-price">
-                      <strong>
-                        {money(item.price * item.qty, item.currency || "TRY")}
-                      </strong>
-                      {(item.currency || "TRY") !== "TRY" && (
-                        <small>
-                          TL karşılığı:{" "}
-                          {money(
-                            toTRY(item.price * item.qty, item.currency),
-                            "TRY",
-                          )}
-                        </small>
-                      )}
-                    </div>
+                    <strong>
+                      {money(item.price * item.qty, item.currency || "TRY")}
+                    </strong>
                   </div>
                 ))}
                 <div className="summary-total">
                   <span>Toplam</span>
                   <b>{totalLabel}</b>
                 </div>
-                {items.some((item) => item.currency === "USD") && (
-                  <div className="exchange-rate-note">
-                    <RefreshCw />
-                    <span>
-                      <b>
-                        1 USD ={" "}
-                        {Number(exchangeRates.USD).toLocaleString("tr-TR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 4,
-                        })}{" "}
-                        ₺
-                      </b>
-                      <small>
-                        TCMB gösterge kuru ·{" "}
-                        {exchangeRateInfo?.date || "güncel kur"}
-                      </small>
-                    </span>
-                  </div>
-                )}
                 <div className="secure-payment">
-                  <Landmark />
+                  <ShieldCheck />
                   <span>
-                    <b>EFT / Havale ile güvenli bağış</b>
-                    <small>
-                      Seçtiğiniz para birimine ait resmi banka hesabını
-                      kullanın.
-                    </small>
+                    <b>Güvenli ödeme</b>
+                    <small>Kart bilgileriniz saklanmaz.</small>
                   </span>
                 </div>
                 <button disabled={loading} className="payment-submit">
@@ -10515,28 +10453,29 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
                     </>
                   ) : (
                     <>
-                      <FileText /> Dekont Yükle ve Bağışı Tamamla
+                      {totalLabel} Bağış Yap <ArrowRight />
                     </>
                   )}
                 </button>
                 <small className="demo-note">
-                  Bağışınız, banka transferi ve dekont kontrolü sonrasında
-                  onaylanır.
+                  Bu bir demo ödeme ekranıdır; gerçek tahsilat yapılmaz.
                 </small>
-              </aside>}
-            </div>
+                <button
+                  type="button"
+                  className="payment-back"
+                  onClick={() => setCheckout(false)}
+                >
+                  ← Sepete geri dön
+                </button>
+              </aside>
+            </form>
           </>
         ) : !items.length ? (
           <div className="empty">
             <ShoppingBag />
             <h3>Sepetin henüz boş.</h3>
             <p>Bir kampanya seçerek iyiliğe ortak olabilirsin.</p>
-            <Link
-              to="/projeler"
-              replace
-              onClick={onNavigate}
-              className="btn orange"
-            >
+            <Link to="/projeler" onClick={onClose} className="btn orange">
               Kampanyaları gör
             </Link>
           </div>
@@ -10591,12 +10530,7 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
               <span>Toplam bağış</span>
               <b>{totalLabel}</b>
               <div className="cart-actions">
-                <Link
-                  className="btn outline"
-                  to="/projeler"
-                  replace
-                  onClick={onNavigate}
-                >
+                <Link className="btn outline" to="/projeler" onClick={onClose}>
                   Bağışa devam et
                 </Link>
                 <button
@@ -10607,7 +10541,7 @@ function Cart({ items, setItems, onClose, onNavigate, exchangeRateInfo }) {
                 </button>
               </div>
               <small>
-                <ShieldCheck /> Demo güvenli ödeme
+                <ShieldCheck /> Albaraka Türk 3D Secure ödeme
               </small>
             </div>
           </>
