@@ -148,7 +148,7 @@ export function CmsProvider({ defaults, children }) {
           addGazaProject = Number(saved.settings?.projectsVersion || 0) < 10,
           addTurkeyProjects = Number(saved.settings?.projectsVersion || 0) < 61,
           upgradeTurkeyProjects =
-            Number(saved.settings?.projectsVersion || 0) < 63,
+            Number(saved.settings?.projectsVersion || 0) < 65,
           upgradeGazaSingleProject =
             Number(saved.settings?.projectsVersion || 0) < 26,
           upgradeGazaWaterTankerProject =
@@ -250,7 +250,7 @@ export function CmsProvider({ defaults, children }) {
                   address: cleanDefaults.settings.address,
                 }
               : {}),
-            projectsVersion: 63,
+            projectsVersion: 65,
             wordingVersion: 3,
             assetFormatVersion: 1,
             navigationVersion: 7,

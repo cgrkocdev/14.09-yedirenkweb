@@ -8236,6 +8236,24 @@ footer p,
   color: var(--navy);
   font-size: 16px;
 }
+.turkey-selected-project-copy > h2 {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--turq);
+  color: var(--navy);
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.turkey-selected-project-copy > p {
+  margin: 0 0 22px;
+  color: #536b79;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.turkey-selected-project-copy > ul {
+  margin-top: 28px;
+}
 .simple-process {
   display: grid;
   grid-template-columns: 1fr 1fr;

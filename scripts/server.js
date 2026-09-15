@@ -401,13 +401,20 @@ async function adminApi(request, env, url) {
   if (url.pathname === "/api/admin/analytics" && request.method === "GET") {
     if (!env.YEDIRENK_ANALYTICS)
       return reply({ message: "Analitik deposu bağlı değil." }, 503);
-    const listed = await env.YEDIRENK_ANALYTICS.list({
-      prefix: "event:",
-      limit: 1000,
-    });
+    const keys = [];
+    let cursor;
+    do {
+      const listed = await env.YEDIRENK_ANALYTICS.list({
+        prefix: "event:",
+        limit: 1000,
+        ...(cursor ? { cursor } : {}),
+      });
+      keys.push(...listed.keys);
+      cursor = listed.list_complete ? undefined : listed.cursor;
+    } while (cursor && keys.length < 10000);
     const events = (
       await Promise.all(
-        listed.keys.map((k) => env.YEDIRENK_ANALYTICS.get(k.name, "json")),
+        keys.map((k) => env.YEDIRENK_ANALYTICS.get(k.name, "json")),
       )
     )
       .filter(Boolean)

@@ -34,6 +34,7 @@ import {
 import { Link } from "react-router-dom";
 import { useCms } from "./cms";
 import { getLocalAnalytics } from "./analytics";
+import { eventTrafficSource } from "./analyticsAttribution";
 
 const SECTIONS = [
   {
@@ -835,7 +836,7 @@ function AnalyticsDashboard() {
 
   const report = useMemo(() => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const since = days === 1 ? todayStart.getTime() : Date.now() - days * 86400000;
+    const since = days === 1 ? todayStart.getTime() : todayStart.getTime() - (days - 1) * 86400000;
     const filtered = events.filter((event) => Number(event.timestamp) >= since);
     const sessions = new Map();
     const pages = new Map();
@@ -846,6 +847,20 @@ function AnalyticsDashboard() {
     let clicks = 0;
     let duration = 0;
     let durations = 0;
+
+    if (days === 1) {
+      for (let hour = 0; hour < 24; hour += 1) {
+        const timestamp = todayStart.getTime() + hour * 3600000;
+        const key = `${String(hour).padStart(2, "0")}:00`;
+        timeline.set(key, { key, timestamp, views: 0, clicks: 0, sessions: new Set() });
+      }
+    } else {
+      for (let offset = days - 1; offset >= 0; offset -= 1) {
+        const date = new Date(todayStart.getTime() - offset * 86400000);
+        const key = date.toLocaleDateString("tr-TR");
+        timeline.set(key, { key, timestamp: date.getTime(), views: 0, clicks: 0, sessions: new Set() });
+      }
+    }
 
     filtered.forEach((event) => {
       const timestamp = Number(event.timestamp) || 0;
@@ -880,16 +895,16 @@ function AnalyticsDashboard() {
       places.set(placeKey, place);
 
       if (event.event === "page_view") {
-        let source = "Doğrudan giriş";
-        try { if (event.referrer) source = new URL(event.referrer).hostname.replace(/^www\./, ""); } catch { source = event.referrer || source; }
-        const sourceRow = sources.get(source) || { source, views: 0, sessions: new Set() };
+        const source = eventTrafficSource(event);
+        const sourceRow = sources.get(source) || { source, views: 0, sessions: new Set(), campaigns: new Set() };
+        if (data._trafficCampaign) sourceRow.campaigns.add(String(data._trafficCampaign));
         sourceRow.views++; sourceRow.sessions.add(sessionId); sources.set(source, sourceRow);
       }
 
       const session = sessions.get(sessionId) || {
         id: sessionId, ip: event.ip || "", country, region, city, timezone: event.timezone || "", isp: event.isp || "",
         views: 0, clicks: 0, duration: 0, firstAt: timestamp, lastPath: path, lastAt: timestamp,
-        referrer: event.referrer || "", userAgent: event.userAgent || "",
+        referrer: event.referrer || "", source: eventTrafficSource(event), userAgent: event.userAgent || "",
       };
       if (event.event === "page_view") session.views++;
       if (event.event === "click") session.clicks++;
@@ -906,16 +921,16 @@ function AnalyticsDashboard() {
       pages: [...pages.values()].sort((a, b) => b.views - a.views).slice(0, 12),
       places: [...places.values()].map((p) => ({ ...p, count: p.sessions.size })).sort((a, b) => b.count - a.count).slice(0, 12),
       timeline: [...timeline.values()].sort((a, b) => days === 1 ? a.key.localeCompare(b.key) : a.timestamp - b.timestamp),
-      sources: [...sources.values()].map((s) => ({ ...s, unique: s.sessions.size })).sort((a, b) => b.views - a.views).slice(0, 10),
+      sources: [...sources.values()].map((s) => ({ ...s, unique: s.sessions.size, campaign: [...s.campaigns].join(", ") })).sort((a, b) => b.views - a.views).slice(0, 10),
       views, clicks, unique: sessions.size, average: durations ? duration / durations : 0,
     };
   }, [events, days]);
 
   const maxTimeline = Math.max(1, ...report.timeline.map((row) => row.views));
-  const visibleSessions = report.sessions.filter((session) => `${session.ip} ${session.country} ${session.region} ${session.city} ${session.lastPath} ${session.isp}`.toLocaleLowerCase("tr-TR").includes(searchText.toLocaleLowerCase("tr-TR")));
+  const visibleSessions = report.sessions.filter((session) => `${session.ip} ${session.country} ${session.region} ${session.city} ${session.lastPath} ${session.isp} ${session.source}`.toLocaleLowerCase("tr-TR").includes(searchText.toLocaleLowerCase("tr-TR")));
   const exportCsv = () => {
     const q = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-    const rows = [["IP", "Ülke", "Bölge", "Şehir", "İlk görülme", "Son görülme", "Sayfa", "Tıklama", "Süre (sn)", "Son sayfa", "Yönlendiren", "İnternet sağlayıcı", "Tarayıcı bilgisi"], ...visibleSessions.map((s) => [s.ip,s.country,s.region,s.city,new Date(s.firstAt).toLocaleString("tr-TR"),new Date(s.lastAt).toLocaleString("tr-TR"),s.views,s.clicks,s.duration,s.lastPath,s.referrer,s.isp,s.userAgent])];
+    const rows = [["IP", "Ülke", "Bölge", "Şehir", "İlk görülme", "Son görülme", "Sayfa", "Tıklama", "Süre (sn)", "Son sayfa", "Geliş kaynağı", "Yönlendiren", "İnternet sağlayıcı", "Tarayıcı bilgisi"], ...visibleSessions.map((s) => [s.ip,s.country,s.region,s.city,new Date(s.firstAt).toLocaleString("tr-TR"),new Date(s.lastAt).toLocaleString("tr-TR"),s.views,s.clicks,s.duration,s.lastPath,s.source,s.referrer,s.isp,s.userAgent])];
     const blob = new Blob(["\uFEFF" + rows.map((row) => row.map(q).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `yedirenk-ziyaretci-raporu-${new Date().toISOString().slice(0,10)}.csv`; link.click(); URL.revokeObjectURL(link.href);
   };
@@ -952,7 +967,7 @@ function AnalyticsDashboard() {
         </article>
       </section>
       <section className="analytics-grid analytics-secondary-grid">
-        <article className="analytics-card"><h3>Geliş kaynakları</h3><div className="analytics-table compact">{report.sources.map((row) => <div key={row.source}><span><b>{row.source}</b><small>{row.unique} tekil ziyaretçi</small></span><strong>{row.views}</strong></div>)}</div></article>
+        <article className="analytics-card"><h3>Geliş kaynakları</h3><div className="analytics-table compact">{report.sources.map((row) => <div key={row.source}><span><b>{row.source}</b><small>{row.unique} tekil ziyaretçi{row.campaign ? ` · ${row.campaign}` : ""}</small></span><strong>{row.views}</strong></div>)}</div></article>
         <article className="analytics-card"><h3>Rapor araçları</h3><p className="analytics-privacy">Aşağıdaki listeyi IP, şehir, ülke, sayfa veya internet sağlayıcısına göre arayabilirsiniz.</p><div className="analytics-report-tools"><label><Search /><input value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="IP, şehir, ülke veya sayfa ara" /></label><button onClick={() => setShowIps((value) => !value)}>{showIps ? "IP adreslerini maskele" : "Tam IP adreslerini göster"}</button><button onClick={exportCsv}><Download /> CSV raporu indir</button></div></article>
       </section>
       <section className="analytics-card">

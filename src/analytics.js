@@ -1,7 +1,10 @@
+import { detectTrafficAttribution } from "./analyticsAttribution";
+
 const CONSENT_KEY = "yedirenk-analytics-consent";
 const SESSION_KEY = "yedirenk-session-id";
 const DEV_EVENTS_KEY = "yedirenk-dev-analytics";
 const DONATION_START_KEY = "yedirenk-meta-donation-started";
+const ATTRIBUTION_KEY = "yedirenk-traffic-attribution";
 
 let lastMetaPage = `${location.pathname}${location.search}`;
 
@@ -61,12 +64,28 @@ export function trackMetaInitiateCheckout({ value, numItems, eventId }) {
 }
 
 export async function track(event, data = {}) {
+  let attribution;
+  try {
+    attribution = JSON.parse(sessionStorage.getItem(ATTRIBUTION_KEY) || "null");
+    if (!attribution) {
+      attribution = detectTrafficAttribution(location.search, document.referrer);
+      sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    }
+  } catch {
+    attribution = detectTrafficAttribution(location.search, document.referrer);
+  }
   const payload = {
     event,
     sessionId: sessionId(),
     path: `${location.pathname}${location.search}`,
     referrer: document.referrer.slice(0, 500),
-    data,
+    data: {
+      ...data,
+      _trafficSource: attribution.source,
+      _trafficMedium: attribution.medium,
+      _trafficCampaign: attribution.campaign,
+      _trafficContent: attribution.content,
+    },
     timestamp: Date.now(),
   };
   if (import.meta.env.DEV) {
