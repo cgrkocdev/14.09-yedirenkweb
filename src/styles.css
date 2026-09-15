@@ -13182,7 +13182,10 @@ footer p,
 .analytics-table.compact > div { min-width: 0; grid-template-columns: 1fr auto; }
 .analytics-table span:has(> small) { display: grid; gap: 3px; }
 .analytics-table small { color: #788d98; }
-.analytics-visitors > header, .analytics-visitors > div { min-width: 900px; grid-template-columns: 170px minmax(260px, 1fr) 125px 100px 165px; }
+.analytics-visitors > header, .analytics-visitors > div { min-width: 1080px; grid-template-columns: 170px 140px minmax(240px, 1fr) 125px 100px 165px; }
+.analytics-date-picker { display: flex; align-items: center; gap: 7px; min-height: 38px; padding: 5px 9px; border: 1px solid #ffffff38; border-radius: 9px; background: #ffffff0d; color: white; font-size: 10px; font-weight: 700; }
+.analytics-date-picker svg { width: 15px; }
+.analytics-date-picker input { border: 0; border-radius: 6px; padding: 4px 6px; background: white; color: #123d54; font: inherit; color-scheme: light; }
 .analytics-privacy { margin: -8px 0 10px; color: #728792; font-size: 10px; }
 .analytics-secondary-grid { grid-template-columns: 1fr 1fr; }
 .analytics-report-tools { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; gap: 9px; }

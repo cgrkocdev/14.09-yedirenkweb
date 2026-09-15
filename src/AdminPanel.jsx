@@ -805,9 +805,15 @@ const maskIp = (ip = "") => {
   return ip || "Bilinmiyor";
 };
 
+const localDateValue = (date = new Date()) => {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+};
+
 function AnalyticsDashboard() {
   const [events, setEvents] = useState([]);
   const [days, setDays] = useState(7);
+  const [selectedDate, setSelectedDate] = useState(localDateValue());
   const [showIps, setShowIps] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -836,8 +842,16 @@ function AnalyticsDashboard() {
 
   const report = useMemo(() => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const since = days === 1 ? todayStart.getTime() : todayStart.getTime() - (days - 1) * 86400000;
-    const filtered = events.filter((event) => Number(event.timestamp) >= since);
+    const selectedStart = selectedDate
+      ? new Date(`${selectedDate}T00:00:00`)
+      : todayStart;
+    const dayStart = Number.isNaN(selectedStart.getTime()) ? todayStart : selectedStart;
+    const since = days === 1 ? dayStart.getTime() : todayStart.getTime() - (days - 1) * 86400000;
+    const until = days === 1 ? since + 86400000 : Date.now() + 1;
+    const filtered = events.filter((event) => {
+      const timestamp = Number(event.timestamp);
+      return timestamp >= since && timestamp < until;
+    });
     const sessions = new Map();
     const pages = new Map();
     const places = new Map();
@@ -850,7 +864,7 @@ function AnalyticsDashboard() {
 
     if (days === 1) {
       for (let hour = 0; hour < 24; hour += 1) {
-        const timestamp = todayStart.getTime() + hour * 3600000;
+        const timestamp = dayStart.getTime() + hour * 3600000;
         const key = `${String(hour).padStart(2, "0")}:00`;
         timeline.set(key, { key, timestamp, views: 0, clicks: 0, sessions: new Set() });
       }
@@ -924,7 +938,7 @@ function AnalyticsDashboard() {
       sources: [...sources.values()].map((s) => ({ ...s, unique: s.sessions.size, campaign: [...s.campaigns].join(", ") })).sort((a, b) => b.views - a.views).slice(0, 10),
       views, clicks, unique: sessions.size, average: durations ? duration / durations : 0,
     };
-  }, [events, days]);
+  }, [events, days, selectedDate]);
 
   const maxTimeline = Math.max(1, ...report.timeline.map((row) => row.views));
   const visibleSessions = report.sessions.filter((session) => `${session.ip} ${session.country} ${session.region} ${session.city} ${session.lastPath} ${session.isp} ${session.source}`.toLocaleLowerCase("tr-TR").includes(searchText.toLocaleLowerCase("tr-TR")));
@@ -939,7 +953,21 @@ function AnalyticsDashboard() {
       <section className="analytics-toolbar">
         <div><b>Ziyaretçi hareketleri</b><small>IP, konum ve hareketler oturum bazında son 30 güne kadar tutulur.</small></div>
         <div>
-          {[1, 7, 30].map((value) => <button key={value} className={days === value ? "active" : ""} onClick={() => setDays(value)}>{value === 1 ? "Bugün" : `${value} gün`}</button>)}
+          <label className="analytics-date-picker">
+            <Clock3 />
+            <span>Tarih</span>
+            <input
+              type="date"
+              value={selectedDate}
+              max={localDateValue()}
+              onChange={(event) => {
+                setSelectedDate(event.target.value || localDateValue());
+                setDays(1);
+              }}
+            />
+          </label>
+          <button className={days === 1 && selectedDate === localDateValue() ? "active" : ""} onClick={() => { setSelectedDate(localDateValue()); setDays(1); }}>Bugün</button>
+          {[7, 30].map((value) => <button key={value} className={days === value ? "active" : ""} onClick={() => setDays(value)}>{value} gün</button>)}
           <button title="Yenile" onClick={load}><RefreshCw /></button>
           <button title="CSV raporu indir" onClick={exportCsv}><Download /> CSV</button>
         </div>
@@ -955,7 +983,7 @@ function AnalyticsDashboard() {
       </section>
       <section className="analytics-grid">
         <article className="analytics-card analytics-chart">
-          <h3>{days === 1 ? "Saatlik trafik" : "Günlük trafik"}</h3>
+          <h3>{days === 1 ? `${new Date(`${selectedDate}T00:00:00`).toLocaleDateString("tr-TR")} · Saatlik trafik` : "Günlük trafik"}</h3>
           <div>{report.timeline.map((row) => <span key={row.key} title={`${row.views} görüntüleme · ${row.clicks} tıklama · ${row.sessions.size} ziyaretçi`}><i style={{ height: `${Math.max(5, row.views / maxTimeline * 100)}%` }} /><small>{days === 1 ? row.key : row.key.slice(0, 5)}</small></span>)}</div>
           {!report.timeline.length && <p>Bu aralıkta henüz veri yok.</p>}
         </article>
@@ -981,8 +1009,8 @@ function AnalyticsDashboard() {
         <h3>Son ziyaretçi oturumları</h3>
         <p className="analytics-privacy">IP adresleri yalnızca bu yönetici ekranında görünür. CSV raporu seçili tarih aralığını ve mevcut arama filtresini kullanır.</p>
         <div className="analytics-table analytics-visitors">
-          <header><span>IP / Konum</span><span>Son sayfa</span><span>Hareket</span><span>Kalma süresi</span><span>Son görülme</span></header>
-          {visibleSessions.slice(0, 250).map((session) => <div key={session.id} title={`${session.userAgent}\n${session.isp}`}><span><b>{showIps ? (session.ip || "Bilinmiyor") : maskIp(session.ip)}</b><small>{[session.city, session.region, session.country].filter((v) => v && v !== "Bilinmiyor").join(", ") || "Konum çözülüyor"}{session.isp ? ` · ${session.isp}` : ""}</small></span><b>{session.lastPath}</b><span>{session.views} sayfa · {session.clicks} tık</span><span>{formatDuration(session.duration)}</span><span><small>İlk: {new Date(session.firstAt).toLocaleString("tr-TR")}</small>Son: {new Date(session.lastAt).toLocaleString("tr-TR")}</span></div>)}
+          <header><span>IP / Konum</span><span>Geliş kaynağı</span><span>Son sayfa</span><span>Hareket</span><span>Kalma süresi</span><span>Son görülme</span></header>
+          {visibleSessions.slice(0, 250).map((session) => <div key={session.id} title={`${session.userAgent}\n${session.isp}`}><span><b>{showIps ? (session.ip || "Bilinmiyor") : maskIp(session.ip)}</b><small>{[session.city, session.region, session.country].filter((v) => v && v !== "Bilinmiyor").join(", ") || "Konum çözülüyor"}{session.isp ? ` · ${session.isp}` : ""}</small></span><b>{session.source}</b><b>{session.lastPath}</b><span>{session.views} sayfa · {session.clicks} tık</span><span>{formatDuration(session.duration)}</span><span><small>İlk: {new Date(session.firstAt).toLocaleString("tr-TR")}</small>Son: {new Date(session.lastAt).toLocaleString("tr-TR")}</span></div>)}
         </div>
       </section>
     </div>
